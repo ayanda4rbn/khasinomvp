@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Heart, Spade, Diamond, Club, Facebook, Youtube } from "lucide-react";
+import { Heart, Spade, Diamond, Club } from "lucide-react";
+import { SocialMediaLinks } from "@/components/layout/SocialMediaLinks";
+import { GuestForm } from "@/components/auth/GuestForm";
+import { AuthForms } from "@/components/auth/AuthForms";
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -29,7 +31,6 @@ const Login = () => {
         if (!guestName.trim()) {
           throw new Error("Please enter a guest name");
         }
-        // Store guest name in localStorage for game display
         localStorage.setItem("guestName", guestName);
         navigate("/game");
         return;
@@ -98,29 +99,31 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-casino-green relative overflow-hidden">
       {/* Header with Logo and Social Media */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
+        <div 
+          className="flex items-center gap-2 cursor-pointer" 
+          onClick={() => navigate("/")}
+        >
           <Spade className="w-8 h-8 text-casino-gold" />
           <span className="text-2xl font-bold text-white">Cassino</span>
         </div>
-        <div className="flex items-center gap-4">
-          <Button variant="link" className="text-white hover:text-casino-gold">
+        <div className="flex items-center gap-6">
+          <Button 
+            variant="link" 
+            className="text-white hover:text-casino-gold"
+            onClick={() => {/* Add rules modal here */}}
+          >
             Rules
           </Button>
-          <a href="#" className="text-white hover:text-casino-gold">
-            <Facebook className="w-6 h-6" />
-          </a>
-          <a href="#" className="text-white hover:text-casino-gold">
-            <Youtube className="w-6 h-6" />
-          </a>
+          <SocialMediaLinks />
         </div>
       </div>
 
-      {/* Background Suit Symbols */}
+      {/* Background Suit Symbols with increased spacing */}
       <div className="absolute inset-0 opacity-10">
-        <Heart className="absolute top-[10%] left-[10%] w-32 h-32" />
-        <Club className="absolute top-[30%] right-[15%] w-32 h-32" />
-        <Diamond className="absolute bottom-[20%] left-[15%] w-32 h-32" />
-        <Spade className="absolute bottom-[40%] right-[10%] w-32 h-32" />
+        <Heart className="absolute top-[15%] left-[15%] w-32 h-32" />
+        <Club className="absolute top-[35%] right-[20%] w-32 h-32" />
+        <Diamond className="absolute bottom-[25%] left-[20%] w-32 h-32" />
+        <Spade className="absolute bottom-[45%] right-[15%] w-32 h-32" />
       </div>
 
       <div className="bg-[#0B2E13] p-8 rounded-lg shadow-lg w-full max-w-md relative z-10">
@@ -133,13 +136,13 @@ const Login = () => {
               Enter your email address and we'll send you a link to reset your password.
             </p>
             <form onSubmit={handleForgotPassword} className="space-y-4">
-              <Input
+              <input
                 placeholder="Email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full bg-[#1A4423] border-casino-gold text-white placeholder:text-gray-400"
+                className="w-full bg-[#1A4423] border-casino-gold text-white placeholder:text-gray-400 p-2 rounded"
               />
               <Button
                 type="submit"
@@ -163,31 +166,20 @@ const Login = () => {
             <h2 className="text-3xl font-bold text-center mb-6 text-white">
               Play as Guest
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                placeholder="Enter your name"
-                type="text"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                required
-                className="w-full bg-[#1A4423] border-casino-gold text-white placeholder:text-gray-400"
-              />
-              <Button
-                type="submit"
-                className="w-full bg-casino-gold hover:bg-yellow-600 text-black font-bold"
-                disabled={isLoading}
+            <GuestForm
+              guestName={guestName}
+              setGuestName={setGuestName}
+              onSubmit={handleSubmit}
+              isLoading={isLoading}
+            />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setIsGuestMode(false)}
+                className="text-casino-gold hover:text-yellow-600 text-sm"
               >
-                Start Playing
-              </Button>
-              <div className="text-center">
-                <button
-                  onClick={() => setIsGuestMode(false)}
-                  className="text-casino-gold hover:text-yellow-600 text-sm"
-                >
-                  Back to Login
-                </button>
-              </div>
-            </form>
+                Back to Login
+              </button>
+            </div>
           </>
         ) : (
           <>
@@ -199,67 +191,16 @@ const Login = () => {
               {isSignUp ? "Create Account" : "Login to Cassino"}
             </h2>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
-                <Input
-                  placeholder="Username"
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  required={isSignUp}
-                  className="w-full bg-[#1A4423] border-casino-gold text-white placeholder:text-gray-400"
-                />
-              )}
-              <Input
-                placeholder="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                className="w-full bg-[#1A4423] border-casino-gold text-white placeholder:text-gray-400"
-              />
-              <Input
-                placeholder="Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                className="w-full bg-[#1A4423] border-casino-gold text-white placeholder:text-gray-400"
-              />
-              <Button
-                type="submit"
-                className="w-full bg-casino-gold hover:bg-yellow-600 text-black font-bold"
-                disabled={isLoading}
-              >
-                {isLoading ? "Loading..." : isSignUp ? "Create Account" : "Login"}
-              </Button>
-
-              <div className="flex justify-between">
-                <button
-                  onClick={() => setIsGuestMode(true)}
-                  className="text-casino-gold hover:text-yellow-600 text-sm"
-                >
-                  Play as Guest
-                </button>
-                <button
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-casino-gold hover:text-yellow-600 text-sm"
-                >
-                  {isSignUp ? "Already have an account? Login" : "Create Account"}
-                </button>
-              </div>
-
-              {!isSignUp && (
-                <div className="text-center">
-                  <button
-                    onClick={() => setIsForgotPassword(true)}
-                    className="text-casino-gold hover:text-yellow-600 text-sm"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-              )}
-            </form>
+            <AuthForms
+              isSignUp={isSignUp}
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleSubmit}
+              isLoading={isLoading}
+              setIsSignUp={setIsSignUp}
+              setIsForgotPassword={setIsForgotPassword}
+              setIsGuestMode={setIsGuestMode}
+            />
           </>
         )}
       </div>
