@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/types/game";
 import { GameModeSelection } from "@/components/game/GameModeSelection";
 import { CardSelection } from "@/components/game/CardSelection";
 import { GameBoard } from "@/components/game/GameBoard";
+import { useToast } from "@/hooks/use-toast";
 
 const Game = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [gameMode, setGameMode] = useState<"ai" | "multiplayer" | null>(null);
   const [gamePhase, setGamePhase] = useState<"selecting" | "playing" | null>("selecting");
   const [selectionCards, setSelectionCards] = useState<Card[]>([]);
@@ -15,19 +18,31 @@ const Game = () => {
   const [deck, setDeck] = useState<Card[]>([]);
   const [playerHand, setPlayerHand] = useState<Card[]>([]);
   const [tableCards, setTableCards] = useState<Card[]>([]);
-  const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user is logged in or playing as guest
+    const guestName = localStorage.getItem("guestName");
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && !guestName) {
+        navigate("/login");
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   const initializeSelectionCards = () => {
-    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const values = Array.from({ length: 10 }, (_, i) => i + 1);
     const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
     const cards: Card[] = [];
     
+    // Generate 5 unique random cards
     while (cards.length < 5) {
       const value = values[Math.floor(Math.random() * values.length)];
       const suit = suits[Math.floor(Math.random() * suits.length)];
       const card = { value, suit, faceUp: false };
       
-      if (!cards.some(c => c.value === value && c.suit === suit)) {
+      if (!cards.some(c => c.value === value)) {
         cards.push(card);
       }
     }
@@ -43,18 +58,18 @@ const Game = () => {
     selectedCard.faceUp = true;
     selectedCard.selected = true;
     setSelectionCards(newCards);
+    setPlayerSelectedCard(selectedCard);
 
-    // AI selects a random card
-    let remainingCards = newCards.filter((_, i) => i !== index);
+    // AI selects a random card from remaining cards
+    const remainingCards = newCards.filter((_, i) => i !== index);
     const aiCardIndex = Math.floor(Math.random() * remainingCards.length);
     const aiCard = remainingCards[aiCardIndex];
     aiCard.faceUp = true;
     aiCard.selected = true;
 
-    setPlayerSelectedCard(selectedCard);
     setAiSelectedCard(aiCard);
 
-    // Determine who goes first using the selected card values
+    // Determine who goes first
     const playerFirst = selectedCard.value < aiCard.value;
     setPlayerGoesFirst(playerFirst);
 
@@ -82,7 +97,7 @@ const Game = () => {
 
   const initializeDeck = () => {
     const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
-    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const values = Array.from({ length: 10 }, (_, i) => i + 1);
     const newDeck: Card[] = [];
 
     for (const suit of suits) {
@@ -91,6 +106,7 @@ const Game = () => {
       }
     }
 
+    // Shuffle the deck
     for (let i = newDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
