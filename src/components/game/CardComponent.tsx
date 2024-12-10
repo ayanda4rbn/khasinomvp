@@ -17,15 +17,16 @@ export const CardComponent: React.FC<CardComponentProps> = ({ card, onClick, cla
 
   const color = card.suit === 'hearts' || card.suit === 'diamonds' ? 'text-red-500' : 'text-black';
   const cardStyle = card.faceUp 
-    ? `w-10 h-14 bg-white rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center m-0.5 ${color} ${card.selected ? 'ring-2 ring-casino-gold' : ''} ${className}`
-    : `w-10 h-14 bg-blue-500 rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center m-0.5 cursor-pointer hover:bg-blue-600 ${className}`;
+    ? `w-16 h-24 bg-white rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center m-0.5 relative ${color} ${card.selected ? 'ring-2 ring-casino-gold' : ''} ${className}`
+    : `w-16 h-24 bg-blue-500 rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center m-0.5 cursor-pointer hover:bg-blue-600 ${className}`;
 
   return (
     <div className={cardStyle} onClick={onClick}>
       {card.faceUp ? (
         <>
-          <div className="text-xs font-bold">{card.value}</div>
-          <div className="text-base">{suitSymbol}</div>
+          <div className="absolute top-1 left-2 text-lg font-bold">{card.value}</div>
+          <div className="absolute top-6 left-2 text-sm">{suitSymbol}</div>
+          <div className="text-4xl">{suitSymbol}</div>
         </>
       ) : null}
     </div>

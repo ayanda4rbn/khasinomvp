@@ -31,8 +31,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
       </div>
 
       {/* AI's Cards */}
-      <div className="mb-4">
-        <p className="text-white mb-2">AI's Cards: 10</p>
+      <div className="mb-2">
+        <p className="text-white mb-1">AI's Cards: 10</p>
         <div className="flex flex-wrap justify-center gap-1">
           {Array(10).fill(null).map((_, index) => (
             <CardComponent
@@ -43,10 +43,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
         </div>
       </div>
 
-      {/* Table Area - Square shape with brighter green */}
-      <div className="flex-grow flex items-center justify-center mb-4">
-        <div className="w-[500px] h-[300px] relative"> {/* Adjusted size */}
-          <div className="absolute inset-0 bg-[#0F8A3C] rounded-lg"> {/* Brighter green */}
+      {/* Table Area */}
+      <div className="flex-grow flex items-center justify-center mb-2">
+        <div className="w-[400px] h-[400px] relative">
+          <div className="absolute inset-0 bg-[#0F8A3C] rounded-lg">
             <div className="p-4 h-full flex items-center justify-center">
               <div className="flex flex-wrap justify-center gap-1 items-center">
                 {tableCards.map((card, index) => (
@@ -63,7 +63,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
 
       {/* Player's Hand */}
       <div>
-        <p className="text-white mb-2">{playerName}'s Cards: {playerHand.length}</p>
+        <p className="text-white mb-1">{playerName}'s Cards: {playerHand.length}</p>
         <div className="flex flex-wrap justify-center gap-1">
           {playerHand.map((card, index) => (
             <CardComponent
@@ -72,9 +72,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
             />
           ))}
         </div>
-        <p className="text-white text-center mt-4">
-          {playerGoesFirst ? "Your turn" : "AI's turn"}. Drag cards to perform actions.
-        </p>
       </div>
     </div>
   );
