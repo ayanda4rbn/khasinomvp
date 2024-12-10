@@ -5,6 +5,7 @@ import { GameModeSelection } from "@/components/game/GameModeSelection";
 import { CardSelection } from "@/components/game/CardSelection";
 import { GameBoard } from "@/components/game/GameBoard";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Game = () => {
   const navigate = useNavigate();
