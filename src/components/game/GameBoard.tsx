@@ -14,12 +14,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
   const playerName = localStorage.getItem("guestName") || "Player";
 
   return (
-    <div className="min-h-screen bg-casino-green p-4">
+    <div className="h-screen bg-casino-green p-4 flex flex-col">
       {/* Header */}
       <div className="flex justify-between items-center text-white mb-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold">Cassino Game</h2>
-        </div>
+        <h2 className="text-2xl font-bold">Cassino Game</h2>
         <div className="flex items-center gap-6">
           <Button 
             variant="link" 
@@ -35,7 +33,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
       {/* AI's Cards */}
       <div className="mb-4">
         <p className="text-white mb-2">AI's Cards: 10</p>
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-1">
           {Array(10).fill(null).map((_, index) => (
             <CardComponent
               key={`ai-${index}`}
@@ -46,11 +44,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
       </div>
 
       {/* Table Area - Square shape with brighter green */}
-      <div className="relative mb-4">
-        <div className="w-[600px] h-[600px] mx-auto"> {/* Fixed size square */}
+      <div className="flex-grow flex items-center justify-center mb-4">
+        <div className="w-[500px] h-[300px] relative"> {/* Adjusted size */}
           <div className="absolute inset-0 bg-[#0F8A3C] rounded-lg"> {/* Brighter green */}
-            <div className="p-8 h-full flex items-center justify-center">
-              <div className="flex flex-wrap justify-center gap-2 items-center">
+            <div className="p-4 h-full flex items-center justify-center">
+              <div className="flex flex-wrap justify-center gap-1 items-center">
                 {tableCards.map((card, index) => (
                   <CardComponent
                     key={`table-${index}`}
@@ -66,7 +64,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
       {/* Player's Hand */}
       <div>
         <p className="text-white mb-2">{playerName}'s Cards: {playerHand.length}</p>
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-1">
           {playerHand.map((card, index) => (
             <CardComponent
               key={`hand-${index}`}
