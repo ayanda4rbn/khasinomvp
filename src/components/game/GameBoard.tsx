@@ -83,10 +83,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
         </div>
       </div>
 
-      {/* Table Area */}
+      {/* Table Area with Captured Cards Boxes */}
       <div className="flex-grow flex items-center justify-center mb-1">
-        <div className="w-[500px] h-[300px] relative">
-          <div className="absolute inset-0 bg-[#0F8A3C] rounded-lg">
+        <div className="w-[500px] h-[300px] relative flex">
+          {/* AI's Captured Cards Box */}
+          <div className="w-20 h-28 bg-casino-gold rounded-lg mr-2 flex items-center justify-center">
+            <span className="text-sm text-black font-medium">AI Captured</span>
+          </div>
+          
+          {/* Main Table */}
+          <div className="flex-1 bg-[#0F8A3C] rounded-lg">
             <div className="p-4 h-full flex items-center justify-center">
               <div className="flex flex-wrap justify-center gap-1 items-center">
                 {tableCards.map((card, index) => (
@@ -97,6 +103,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Player's Captured Cards Box */}
+          <div className="w-20 h-28 bg-casino-gold rounded-lg ml-2 flex items-center justify-center">
+            <span className="text-sm text-black font-medium">Player Captured</span>
           </div>
         </div>
       </div>
