@@ -36,9 +36,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
   };
 
   return (
-    <div className="min-h-screen bg-casino-green p-4 flex flex-col">
+    <div className="h-screen bg-casino-green p-4 flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center text-white mb-4">
+      <div className="flex justify-between items-center text-white mb-2">
         <div className="flex items-center gap-4">
           <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
             <AlertDialogTrigger asChild>
@@ -71,7 +71,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
       </div>
 
       {/* AI's Cards */}
-      <div className="mb-2">
+      <div className="mb-1">
         <p className="text-white mb-1">AI's Cards: 10</p>
         <div className="flex flex-wrap justify-center gap-0.5">
           {Array(10).fill(null).map((_, index) => (
@@ -84,8 +84,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
       </div>
 
       {/* Table Area */}
-      <div className="flex-grow flex items-center justify-center mb-2">
-        <div className="w-[500px] h-[350px] relative">
+      <div className="flex-grow flex items-center justify-center mb-1">
+        <div className="w-[500px] h-[300px] relative">
           <div className="absolute inset-0 bg-[#0F8A3C] rounded-lg">
             <div className="p-4 h-full flex items-center justify-center">
               <div className="flex flex-wrap justify-center gap-1 items-center">
