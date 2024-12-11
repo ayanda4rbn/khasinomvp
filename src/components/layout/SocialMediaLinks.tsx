@@ -3,7 +3,7 @@ import { Facebook, Youtube, Twitter, Instagram } from 'lucide-react';
 
 export const SocialMediaLinks = () => {
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-4">
       <a 
         href="https://facebook.com" 
         target="_blank" 
