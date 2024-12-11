@@ -35,6 +35,26 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
     navigate('/');
   };
 
+  const handleAIDiscard = (playerCard: Card) => {
+    // AI logic to discard a low-value card when player plays a smaller card
+    const aiHand = [/* ... AI's current hand */];
+    let cardToDiscard = aiHand[0];
+    
+    // Sort cards by value, prioritizing non-point cards and lower values
+    aiHand.sort((a, b) => {
+      // Prioritize non-face cards and lower values
+      if (a.value < 10 && b.value >= 10) return -1;
+      if (a.value >= 10 && b.value < 10) return 1;
+      return a.value - b.value;
+    });
+    
+    // Select the lowest value card that isn't a point card
+    cardToDiscard = aiHand.find(card => card.value < 10) || aiHand[0];
+    
+    // Add the discarded card to the table
+    // setTableCards([...tableCards, cardToDiscard]);
+  };
+
   return (
     <div className="h-screen bg-casino-green p-4 flex flex-col">
       {/* Header */}
@@ -86,11 +106,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
       {/* Table Area with Captured Cards Boxes */}
       <div className="flex-grow flex items-center justify-center mb-1">
         <div className="w-[500px] h-[300px] relative flex">
-          {/* AI's Captured Cards Box */}
-          <div className="w-20 h-28 bg-casino-gold rounded-lg mr-2 flex items-center justify-center">
-            <span className="text-sm text-black font-medium">AI Captured</span>
-          </div>
-          
           {/* Main Table */}
           <div className="flex-1 bg-[#0F8A3C] rounded-lg">
             <div className="p-4 h-full flex items-center justify-center">
@@ -104,11 +119,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Player's Captured Cards Box */}
-          <div className="w-20 h-28 bg-casino-gold rounded-lg ml-2 flex items-center justify-center">
-            <span className="text-sm text-black font-medium">Player Captured</span>
-          </div>
+      {/* Captured Cards Area */}
+      <div className="flex justify-between mb-4 px-4">
+        <div className="flex items-center">
+          <span className="text-white mr-2">AI chowed cards</span>
+          <div className="w-20 h-28 border-2 border-casino-gold rounded-lg"></div>
+        </div>
+        <div className="flex items-center">
+          <span className="text-white mr-2">{playerName}'s chowed cards</span>
+          <div className="w-20 h-28 border-2 border-casino-gold rounded-lg"></div>
         </div>
       </div>
 
