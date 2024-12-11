@@ -105,9 +105,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
 
       {/* Table Area with Captured Cards Boxes */}
       <div className="flex-grow flex items-center justify-center mb-1">
-        <div className="w-[500px] h-[300px] relative flex">
+        <div className="flex items-start w-full max-w-[800px]">
+          {/* Left side area for chowed cards */}
+          <div className="flex flex-col justify-between h-[300px] mr-4">
+            {/* AI's chowed cards */}
+            <div className="flex items-center">
+              <span className="text-white mr-2 whitespace-nowrap">AI chowed cards</span>
+              <div className="w-16 h-24 border-2 border-casino-gold rounded-lg"></div>
+            </div>
+            {/* Player's chowed cards */}
+            <div className="flex items-center">
+              <span className="text-white mr-2 whitespace-nowrap">{playerName}'s chowed cards</span>
+              <div className="w-16 h-24 border-2 border-casino-gold rounded-lg"></div>
+            </div>
+          </div>
+
           {/* Main Table */}
-          <div className="flex-1 bg-[#0F8A3C] rounded-lg">
+          <div className="w-[500px] h-[300px] bg-[#0F8A3C] rounded-lg">
             <div className="p-4 h-full flex items-center justify-center">
               <div className="flex flex-wrap justify-center gap-1 items-center">
                 {tableCards.map((card, index) => (
@@ -122,20 +136,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
         </div>
       </div>
 
-      {/* Captured Cards Area */}
-      <div className="flex justify-between mb-4 px-4">
-        <div className="flex items-center">
-          <span className="text-white mr-2">AI chowed cards</span>
-          <div className="w-20 h-28 border-2 border-casino-gold rounded-lg"></div>
-        </div>
-        <div className="flex items-center">
-          <span className="text-white mr-2">{playerName}'s chowed cards</span>
-          <div className="w-20 h-28 border-2 border-casino-gold rounded-lg"></div>
-        </div>
-      </div>
-
       {/* Player's Hand */}
-      <div>
+      <div className="mt-auto">
         <p className="text-white mb-1">{playerName}'s Cards: {playerHand.length}</p>
         <div className="flex flex-wrap justify-center gap-0.5">
           {playerHand.map((card, index) => (
