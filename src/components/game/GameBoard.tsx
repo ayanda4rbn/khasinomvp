@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/types/game';
 import { CardComponent } from './CardComponent';
+import { TableArea } from './TableArea';
+import { handleAITurn } from './utils/AILogic';
 import { SocialMediaLinks } from '@/components/layout/SocialMediaLinks';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
@@ -34,6 +36,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [tableCards, setTableCards] = useState<Card[]>(initialTableCards);
   const [playerHand, setPlayerHand] = useState<Card[]>(initialPlayerHand);
   const [isPlayerTurn, setIsPlayerTurn] = useState(playerGoesFirst);
+
+  // Effect to handle AI's turn
+  useEffect(() => {
+    if (!isPlayerTurn) {
+      const timer = setTimeout(() => {
+        handleAITurn(tableCards, playerHand, setTableCards, setPlayerHand, setIsPlayerTurn);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isPlayerTurn, tableCards, playerHand]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, cardIndex: number) => {
     if (!isPlayerTurn) {
@@ -82,54 +94,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     newPlayerHand.splice(cardIndex, 1);
     setPlayerHand(newPlayerHand);
 
-    // End player's turn and trigger AI turn
+    // End player's turn
     setIsPlayerTurn(false);
-    setTimeout(handleAITurn, 1000);
-  };
-
-  const handleAITurn = () => {
-    // Simple AI: just discard a random card
-    const aiCardIndex = Math.floor(Math.random() * playerHand.length);
-    const aiCard = playerHand[aiCardIndex];
-
-    // Find a random empty spot on the table
-    let x, y;
-    let isValidPosition = false;
-    const maxAttempts = 50;
-    let attempts = 0;
-
-    while (!isValidPosition && attempts < maxAttempts) {
-      x = Math.random() * 400 + 50; // Add some padding from edges
-      y = Math.random() * 200 + 50;
-
-      isValidPosition = !tableCards.some(existingCard => {
-        const existingX = existingCard.tableX || 0;
-        const existingY = existingCard.tableY || 0;
-        return (
-          x < existingX + 48 &&
-          x + 48 > existingX &&
-          y < existingY + 64 &&
-          y + 64 > existingY
-        );
-      });
-
-      attempts++;
-    }
-
-    if (isValidPosition) {
-      const newTableCards = [...tableCards, { ...aiCard, tableX: x, tableY: y }];
-      setTableCards(newTableCards);
-
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(aiCardIndex, 1);
-      setPlayerHand(newPlayerHand);
-
-      toast.info("AI discarded a card");
-      setIsPlayerTurn(true);
-    } else {
-      toast.error("AI couldn't find a valid position to place the card");
-      setIsPlayerTurn(true);
-    }
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -186,43 +152,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Table Area with Captured Cards Boxes */}
       <div className="flex-grow flex items-center justify-center mb-1">
-        <div className="flex items-start w-full max-w-[800px]">
-          {/* Left side area for chowed cards */}
-          <div className="flex flex-col justify-between h-[300px] mr-4">
-            {/* AI's chowed cards */}
-            <div className="flex items-center">
-              <span className="text-white mr-2 whitespace-nowrap">AI chowed cards</span>
-              <div className="w-12 h-16 border-2 border-casino-gold rounded-lg"></div>
-            </div>
-            {/* Player's chowed cards */}
-            <div className="flex items-center">
-              <span className="text-white mr-2 whitespace-nowrap">{playerName}'s chowed cards</span>
-              <div className="w-12 h-16 border-2 border-casino-gold rounded-lg"></div>
-            </div>
-          </div>
-
-          {/* Main Table */}
-          <div 
-            className="w-[500px] h-[300px] bg-[#0F8A3C] rounded-lg relative"
-            onDragOver={handleDragOver}
-            onDrop={handleTableDrop}
-          >
-            {tableCards.map((card, index) => (
-              <div
-                key={`table-${index}`}
-                style={{
-                  position: 'absolute',
-                  left: card.tableX || 0,
-                  top: card.tableY || 0,
-                }}
-              >
-                <CardComponent
-                  card={{ ...card, faceUp: true }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <TableArea
+          tableCards={tableCards}
+          onDragOver={handleDragOver}
+          onDrop={handleTableDrop}
+          playerName={playerName}
+        />
       </div>
 
       {/* Player's Hand */}
