@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Game = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [gameMode, setGameMode] = useState<"ai" | "multiplayer" | null>(null);
+  const [gameMode, setGameMode] = useState<"ai" | "multiplayer" | "three_hands" | "four_hands" | "partners" | null>(null);
   const [gamePhase, setGamePhase] = useState<"selecting" | "playing" | null>("selecting");
   const [selectionCards, setSelectionCards] = useState<Card[]>([]);
   const [playerSelectedCard, setPlayerSelectedCard] = useState<Card | null>(null);
@@ -122,20 +122,25 @@ const Game = () => {
     }
   }, [gameMode]);
 
-  if (!gameMode) {
-    return <GameModeSelection onSelectMode={setGameMode} />;
-  }
-
-  if (gamePhase === "selecting") {
-    return <CardSelection selectionCards={selectionCards} onCardSelect={handleCardSelect} />;
-  }
-
   return (
-    <GameBoard
-      playerGoesFirst={playerGoesFirst!}
-      tableCards={tableCards}
-      playerHand={playerHand}
-    />
+    <>
+      {!gameMode && (
+        <GameModeSelection onSelectMode={setGameMode} />
+      )}
+      {gameMode && gamePhase === "selecting" && (
+        <CardSelection 
+          selectionCards={selectionCards} 
+          onCardSelect={handleCardSelect} 
+        />
+      )}
+      {gameMode && gamePhase === "playing" && (
+        <GameBoard
+          playerGoesFirst={playerGoesFirst!}
+          tableCards={tableCards}
+          playerHand={playerHand}
+        />
+      )}
+    </>
   );
 };
 
