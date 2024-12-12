@@ -44,9 +44,10 @@ export const GameModeSelection: React.FC<GameModeSelectionProps> = ({ onSelectMo
           </Button>
           <Button 
             onClick={() => handleModeSelect("four_hands")}
-            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto"
+            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto flex flex-col items-center"
           >
-            4 Hands (Every Man for Himself)
+            <span>4 Hands</span>
+            <span className="text-sm">(Every Man for Himself)</span>
           </Button>
           <Button 
             onClick={() => handleModeSelect("partners")}
