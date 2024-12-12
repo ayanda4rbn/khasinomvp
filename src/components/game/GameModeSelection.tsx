@@ -26,32 +26,32 @@ export const GameModeSelection: React.FC<GameModeSelectionProps> = ({ onSelectMo
         <div className="space-y-4">
           <Button 
             onClick={() => handleModeSelect("ai")}
-            className="w-64 bg-casino-gold hover:bg-yellow-500 text-black px-8 py-6 text-lg block mx-auto"
+            className="w-64 bg-casino-gold hover:bg-yellow-500 text-black px-8 py-6 text-lg block mx-auto flex items-center justify-center"
           >
             Play vs AI
           </Button>
           <Button 
             onClick={() => handleModeSelect("multiplayer")}
-            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto"
+            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto flex items-center justify-center"
           >
             2 Players
           </Button>
           <Button 
             onClick={() => handleModeSelect("three_hands")}
-            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto"
+            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto flex items-center justify-center"
           >
             3 Hands
           </Button>
           <Button 
             onClick={() => handleModeSelect("four_hands")}
-            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto flex flex-col items-center"
+            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto flex flex-col items-center justify-center"
           >
             <span>4 Hands</span>
             <span className="text-sm">(Every Man for Himself)</span>
           </Button>
           <Button 
             onClick={() => handleModeSelect("partners")}
-            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto"
+            className="w-64 bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg block mx-auto flex items-center justify-center"
           >
             Partners
           </Button>
