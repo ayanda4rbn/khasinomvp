@@ -35,26 +35,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
     navigate('/');
   };
 
-  const handleAIDiscard = (playerCard: Card) => {
-    // AI logic to discard a low-value card when player plays a smaller card
-    const aiHand = [/* ... AI's current hand */];
-    let cardToDiscard = aiHand[0];
-    
-    // Sort cards by value, prioritizing non-point cards and lower values
-    aiHand.sort((a, b) => {
-      // Prioritize non-face cards and lower values
-      if (a.value < 10 && b.value >= 10) return -1;
-      if (a.value >= 10 && b.value < 10) return 1;
-      return a.value - b.value;
-    });
-    
-    // Select the lowest value card that isn't a point card
-    cardToDiscard = aiHand.find(card => card.value < 10) || aiHand[0];
-    
-    // Add the discarded card to the table
-    // setTableCards([...tableCards, cardToDiscard]);
-  };
-
   return (
     <div className="h-screen bg-casino-green p-4 flex flex-col">
       {/* Header */}
@@ -105,18 +85,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({ playerGoesFirst, tableCard
 
       {/* Table Area with Captured Cards Boxes */}
       <div className="flex-grow flex items-center justify-center mb-1">
-        <div className="flex items-start w-full max-w-[800px]">
+        <div className="flex items-start w-full max-w-[800px] pl-8">
           {/* Left side area for chowed cards */}
-          <div className="flex flex-col justify-between h-[300px] mr-4">
+          <div className="flex flex-col justify-between h-[300px] mr-6">
             {/* AI's chowed cards */}
             <div className="flex items-center">
               <span className="text-white mr-2 whitespace-nowrap">AI chowed cards</span>
-              <div className="w-16 h-24 border-2 border-casino-gold rounded-lg"></div>
+              <div className="w-14 h-20 border-2 border-casino-gold rounded-lg"></div>
             </div>
             {/* Player's chowed cards */}
             <div className="flex items-center">
               <span className="text-white mr-2 whitespace-nowrap">{playerName}'s chowed cards</span>
-              <div className="w-16 h-24 border-2 border-casino-gold rounded-lg"></div>
+              <div className="w-14 h-20 border-2 border-casino-gold rounded-lg"></div>
             </div>
           </div>
 
