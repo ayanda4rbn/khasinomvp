@@ -3,4 +3,6 @@ export interface Card {
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
   faceUp?: boolean;
   selected?: boolean;
+  tableX?: number;
+  tableY?: number;
 }
