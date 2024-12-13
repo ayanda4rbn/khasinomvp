@@ -91,12 +91,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const cardIndex = parseInt(e.dataTransfer.getData('text/plain'));
     const card = playerHand[cardIndex];
     
-    // Get drop coordinates relative to the table
     const tableRect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
     
-    // Check if the position overlaps with any existing cards
     const cardWidth = 48;
     const cardHeight = 64;
     const isOverlapping = tableCards.some(existingCard => {
@@ -115,16 +113,19 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       return;
     }
 
-    // Add the card to the table with its position and source
-    const newTableCards = [...tableCards, { ...card, tableX: x, tableY: y, playedBy: 'player' }];
-    setTableCards(newTableCards);
+    const newCard: Card = {
+      ...card,
+      tableX: x,
+      tableY: y,
+      playedBy: 'player' as const
+    };
 
-    // Remove the card from player's hand
+    setTableCards([...tableCards, newCard]);
+    
     const newPlayerHand = [...playerHand];
     newPlayerHand.splice(cardIndex, 1);
     setPlayerHand(newPlayerHand);
 
-    // End player's turn
     setIsPlayerTurn(false);
   };
 

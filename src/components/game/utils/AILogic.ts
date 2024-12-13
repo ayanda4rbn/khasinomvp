@@ -8,18 +8,16 @@ export const handleAITurn = (
   setPlayerHand: (cards: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void
 ) => {
-  // Simple AI: just discard a random card
   const aiCardIndex = Math.floor(Math.random() * playerHand.length);
   const aiCard = playerHand[aiCardIndex];
 
-  // Find a random empty spot on the table
   let x, y;
   let isValidPosition = false;
   const maxAttempts = 50;
   let attempts = 0;
 
   while (!isValidPosition && attempts < maxAttempts) {
-    x = Math.random() * 400 + 50; // Add some padding from edges
+    x = Math.random() * 400 + 50;
     y = Math.random() * 200 + 50;
 
     isValidPosition = !tableCards.some(existingCard => {
@@ -37,9 +35,14 @@ export const handleAITurn = (
   }
 
   if (isValidPosition) {
-    // Add source information to track who played the card
-    const newTableCards = [...tableCards, { ...aiCard, tableX: x, tableY: y, playedBy: 'ai' }];
-    setTableCards(newTableCards);
+    const newCard: Card = {
+      ...aiCard,
+      tableX: x,
+      tableY: y,
+      playedBy: 'ai' as const
+    };
+
+    setTableCards([...tableCards, newCard]);
 
     const newPlayerHand = [...playerHand];
     newPlayerHand.splice(aiCardIndex, 1);
