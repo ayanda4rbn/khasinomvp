@@ -16,9 +16,9 @@ export const TableArea: React.FC<TableAreaProps> = ({
   playerName,
 }) => {
   return (
-    <div className="flex items-start w-full max-w-[800px]">
+    <div className="flex items-start w-full max-w-[880px]">
       {/* Left side area for chowed cards */}
-      <div className="flex flex-col justify-between h-[300px] mr-4">
+      <div className="flex flex-col justify-between h-[300px] mr-8">
         {/* AI's chowed cards */}
         <div className="flex items-center">
           <span className="text-white mr-2 whitespace-nowrap">AI chowed cards</span>
@@ -33,7 +33,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
       {/* Main Table */}
       <div 
-        className="w-[500px] h-[300px] bg-[#0F8A3C] rounded-lg relative"
+        className="w-[550px] h-[300px] bg-[#0F8A3C] rounded-lg relative"
         onDragOver={onDragOver}
         onDrop={onDrop}
       >

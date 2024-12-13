@@ -23,22 +23,24 @@ interface GameBoardProps {
   playerGoesFirst: boolean;
   tableCards: Card[];
   playerHand: Card[];
+  deck: Card[]; // Add deck prop
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({ 
   playerGoesFirst, 
   tableCards: initialTableCards, 
-  playerHand: initialPlayerHand 
+  playerHand: initialPlayerHand,
+  deck: initialDeck
 }) => {
   const navigate = useNavigate();
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const playerName = localStorage.getItem("guestName") || "Player";
   const [tableCards, setTableCards] = useState<Card[]>(initialTableCards);
   const [playerHand, setPlayerHand] = useState<Card[]>(initialPlayerHand);
-  const [aiHand, setAiHand] = useState<Card[]>(initialPlayerHand); // Track AI's hand separately
+  const [aiHand, setAiHand] = useState<Card[]>(initialPlayerHand);
   const [isPlayerTurn, setIsPlayerTurn] = useState(playerGoesFirst);
   const [currentRound, setCurrentRound] = useState(1);
-  const [deck, setDeck] = useState<Card[]>([]); // Track remaining deck
+  const [deck, setDeck] = useState<Card[]>(initialDeck);
 
   // Effect to handle AI's turn
   useEffect(() => {
@@ -63,7 +65,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   }, [playerHand.length, aiHand.length, currentRound]);
 
   const dealNewRound = () => {
-    // Deal 10 cards each to player and AI from the deck
+    // Deal remaining cards for round 2
     const newPlayerHand = deck.slice(0, 10);
     const newAiHand = deck.slice(10, 20);
     const remainingDeck = deck.slice(20);
@@ -71,6 +73,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     setPlayerHand(newPlayerHand);
     setAiHand(newAiHand);
     setDeck(remainingDeck);
+    setIsPlayerTurn(playerGoesFirst); // Keep same first player for round 2
     toast.success("Round 2 starting!");
   };
 

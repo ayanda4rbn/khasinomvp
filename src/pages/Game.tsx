@@ -139,6 +139,7 @@ const Game = () => {
           playerGoesFirst={playerGoesFirst!}
           tableCards={tableCards}
           playerHand={playerHand}
+          deck={deck}
         />
       )}
     </>
