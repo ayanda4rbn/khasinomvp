@@ -101,16 +101,33 @@ const Game = () => {
     const values = Array.from({ length: 10 }, (_, i) => i + 1);
     const newDeck: Card[] = [];
 
+    // Create exactly one card for each suit and value combination
     for (const suit of suits) {
       for (const value of values) {
-        newDeck.push({ suit, value, faceUp: false });
+        newDeck.push({
+          suit,
+          value,
+          faceUp: false,
+          selected: false,
+        });
       }
     }
 
-    // Shuffle the deck
+    // Fisher-Yates shuffle algorithm for better randomization
     for (let i = newDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+    }
+
+    // Verify deck integrity
+    const uniqueCards = new Set(newDeck.map(card => `${card.value}-${card.suit}`));
+    console.log('Deck size:', newDeck.length);
+    console.log('Unique cards:', uniqueCards.size);
+    
+    if (uniqueCards.size !== 40) {
+      console.error('Deck integrity check failed - duplicate cards detected');
+      // Recursively try again if somehow we got duplicates
+      return initializeDeck();
     }
 
     return newDeck;
