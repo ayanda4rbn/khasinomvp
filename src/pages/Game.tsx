@@ -89,11 +89,10 @@ const Game = () => {
     const newDeck = initializeDeck();
     const playerCards = newDeck.slice(0, 10);
     const aiCards = newDeck.slice(10, 20);
-    const tableCards = newDeck.slice(20, 24); // Deal 4 cards to the table
-    const remainingDeck = newDeck.slice(24);
+    const remainingDeck = newDeck.slice(20); // Don't deal cards to table initially
 
     setPlayerHand(playerCards);
-    setTableCards(tableCards.map(card => ({ ...card, faceUp: true }))); // Make table cards face up
+    setTableCards([]); // Start with empty table
     setDeck(remainingDeck);
   };
 

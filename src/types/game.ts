@@ -5,4 +5,5 @@ export interface Card {
   selected?: boolean;
   tableX?: number;
   tableY?: number;
+  playedBy?: 'player' | 'ai';
 }

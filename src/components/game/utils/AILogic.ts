@@ -37,7 +37,8 @@ export const handleAITurn = (
   }
 
   if (isValidPosition) {
-    const newTableCards = [...tableCards, { ...aiCard, tableX: x, tableY: y }];
+    // Add source information to track who played the card
+    const newTableCards = [...tableCards, { ...aiCard, tableX: x, tableY: y, playedBy: 'ai' }];
     setTableCards(newTableCards);
 
     const newPlayerHand = [...playerHand];

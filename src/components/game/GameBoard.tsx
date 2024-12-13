@@ -97,8 +97,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const y = e.clientY - tableRect.top;
     
     // Check if the position overlaps with any existing cards
-    const cardWidth = 48; // w-12 = 3rem = 48px
-    const cardHeight = 64; // h-16 = 4rem = 64px
+    const cardWidth = 48;
+    const cardHeight = 64;
     const isOverlapping = tableCards.some(existingCard => {
       const existingX = existingCard.tableX || 0;
       const existingY = existingCard.tableY || 0;
@@ -115,8 +115,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       return;
     }
 
-    // Add the card to the table with its position
-    const newTableCards = [...tableCards, { ...card, tableX: x, tableY: y }];
+    // Add the card to the table with its position and source
+    const newTableCards = [...tableCards, { ...card, tableX: x, tableY: y, playedBy: 'player' }];
     setTableCards(newTableCards);
 
     // Remove the card from player's hand
