@@ -35,20 +35,29 @@ const Game = () => {
   const initializeSelectionCards = () => {
     const values = Array.from({ length: 10 }, (_, i) => i + 1);
     const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
-    const cards: Card[] = [];
+    const allCards: Card[] = [];
     
-    // Generate 5 unique random cards
-    while (cards.length < 5) {
-      const value = values[Math.floor(Math.random() * values.length)];
-      const suit = suits[Math.floor(Math.random() * suits.length)];
-      const card = { value, suit, faceUp: false };
-      
-      if (!cards.some(c => c.value === value)) {
-        cards.push(card);
+    // Generate all possible cards first
+    for (const suit of suits) {
+      for (const value of values) {
+        allCards.push({ value, suit, faceUp: false });
       }
     }
     
-    setSelectionCards(cards);
+    // Randomly select 5 unique cards for selection
+    const selectedCards: Card[] = [];
+    while (selectedCards.length < 5) {
+      const randomIndex = Math.floor(Math.random() * allCards.length);
+      const card = allCards[randomIndex];
+      
+      // Only add if we don't already have a card with this value
+      if (!selectedCards.some(c => c.value === card.value)) {
+        selectedCards.push(card);
+        allCards.splice(randomIndex, 1); // Remove the card so it can't be selected again
+      }
+    }
+    
+    setSelectionCards(selectedCards);
   };
 
   const handleCardSelect = (index: number) => {
@@ -85,17 +94,6 @@ const Game = () => {
     }, 2000);
   };
 
-  const dealInitialCards = () => {
-    const newDeck = initializeDeck();
-    const playerCards = newDeck.slice(0, 10);
-    const aiCards = newDeck.slice(10, 20);
-    const remainingDeck = newDeck.slice(20); // Don't deal cards to table initially
-
-    setPlayerHand(playerCards);
-    setTableCards([]); // Start with empty table
-    setDeck(remainingDeck);
-  };
-
   const initializeDeck = () => {
     const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
     const values = Array.from({ length: 10 }, (_, i) => i + 1);
@@ -113,7 +111,7 @@ const Game = () => {
       }
     }
 
-    // Fisher-Yates shuffle algorithm for better randomization
+    // Fisher-Yates shuffle algorithm
     for (let i = newDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
@@ -121,16 +119,23 @@ const Game = () => {
 
     // Verify deck integrity
     const uniqueCards = new Set(newDeck.map(card => `${card.value}-${card.suit}`));
-    console.log('Deck size:', newDeck.length);
-    console.log('Unique cards:', uniqueCards.size);
-    
     if (uniqueCards.size !== 40) {
-      console.error('Deck integrity check failed - duplicate cards detected');
-      // Recursively try again if somehow we got duplicates
-      return initializeDeck();
+      console.error('Deck integrity check failed');
+      return initializeDeck(); // Try again if we somehow got duplicates
     }
 
     return newDeck;
+  };
+
+  const dealInitialCards = () => {
+    const newDeck = initializeDeck();
+    const playerCards = newDeck.slice(0, 10);
+    const aiCards = newDeck.slice(10, 20);
+    const remainingDeck = newDeck.slice(20);
+
+    setPlayerHand(playerCards);
+    setTableCards([]); // Start with empty table
+    setDeck(remainingDeck);
   };
 
   useEffect(() => {
