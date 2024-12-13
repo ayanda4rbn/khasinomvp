@@ -35,17 +35,44 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const playerName = localStorage.getItem("guestName") || "Player";
   const [tableCards, setTableCards] = useState<Card[]>(initialTableCards);
   const [playerHand, setPlayerHand] = useState<Card[]>(initialPlayerHand);
+  const [aiHand, setAiHand] = useState<Card[]>(initialPlayerHand); // Track AI's hand separately
   const [isPlayerTurn, setIsPlayerTurn] = useState(playerGoesFirst);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [deck, setDeck] = useState<Card[]>([]); // Track remaining deck
 
   // Effect to handle AI's turn
   useEffect(() => {
-    if (!isPlayerTurn) {
+    if (!isPlayerTurn && aiHand.length > 0) {
       const timer = setTimeout(() => {
-        handleAITurn(tableCards, playerHand, setTableCards, setPlayerHand, setIsPlayerTurn);
+        handleAITurn(tableCards, aiHand, setTableCards, setAiHand, setIsPlayerTurn);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isPlayerTurn, tableCards, playerHand]);
+  }, [isPlayerTurn, tableCards, aiHand]);
+
+  // Effect to check if round is over and start new round
+  useEffect(() => {
+    if (playerHand.length === 0 && aiHand.length === 0 && currentRound === 1) {
+      // Start round 2
+      const timer = setTimeout(() => {
+        setCurrentRound(2);
+        dealNewRound();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [playerHand.length, aiHand.length, currentRound]);
+
+  const dealNewRound = () => {
+    // Deal 10 cards each to player and AI from the deck
+    const newPlayerHand = deck.slice(0, 10);
+    const newAiHand = deck.slice(10, 20);
+    const remainingDeck = deck.slice(20);
+
+    setPlayerHand(newPlayerHand);
+    setAiHand(newAiHand);
+    setDeck(remainingDeck);
+    toast.success("Round 2 starting!");
+  };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, cardIndex: number) => {
     if (!isPlayerTurn) {
@@ -134,14 +161,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           </Button>
         </div>
         <SocialMediaLinks />
-        <p>Round 1</p>
+        <p>Round {currentRound}</p>
       </div>
 
       {/* AI's Cards */}
       <div className="mb-1">
-        <p className="text-white mb-1">AI's Cards: {playerHand.length}</p>
+        <p className="text-white mb-1">AI's Cards: {aiHand.length}</p>
         <div className="flex flex-wrap justify-center gap-0.5">
-          {Array(playerHand.length).fill(null).map((_, index) => (
+          {Array(aiHand.length).fill(null).map((_, index) => (
             <CardComponent
               key={`ai-${index}`}
               card={{ value: 0, suit: 'hearts', faceUp: false }}

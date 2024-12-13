@@ -89,11 +89,12 @@ const Game = () => {
     const newDeck = initializeDeck();
     const playerCards = newDeck.slice(0, 10);
     const aiCards = newDeck.slice(10, 20);
-    const remainingDeck = newDeck.slice(20);
+    const tableCards = newDeck.slice(20, 24); // Deal 4 cards to the table
+    const remainingDeck = newDeck.slice(24);
 
     setPlayerHand(playerCards);
+    setTableCards(tableCards.map(card => ({ ...card, faceUp: true }))); // Make table cards face up
     setDeck(remainingDeck);
-    setTableCards([]);
   };
 
   const initializeDeck = () => {
@@ -103,7 +104,7 @@ const Game = () => {
 
     for (const suit of suits) {
       for (const value of values) {
-        newDeck.push({ suit, value });
+        newDeck.push({ suit, value, faceUp: false });
       }
     }
 
