@@ -6,6 +6,7 @@ import { CardSelection } from "@/components/game/CardSelection";
 import { GameBoard } from "@/components/game/GameBoard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getStandardDeck, shuffleDeck, dealCards, logCardState } from "@/components/game/utils/deckManager";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ const Game = () => {
   const [deck, setDeck] = useState<Card[]>([]);
   const [playerHand, setPlayerHand] = useState<Card[]>([]);
   const [tableCards, setTableCards] = useState<Card[]>([]);
-  const [usedCards] = useState(new Set<string>());
 
   useEffect(() => {
     const guestName = localStorage.getItem("guestName");
@@ -32,83 +32,19 @@ const Game = () => {
     checkAuth();
   }, [navigate]);
 
-  const createStandardDeck = (): Card[] => {
-    const deck: Card[] = [];
-    const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
-    const values = Array.from({ length: 10 }, (_, i) => i + 1);
-
-    for (const suit of suits) {
-      for (const value of values) {
-        const card: Card = {
-          suit,
-          value,
-          faceUp: false,
-          selected: false,
-        };
-        deck.push(card);
-      }
-    }
-
-    return deck;
-  };
-
-  const getCardKey = (card: Card): string => {
-    return `${card.value}-${card.suit}`;
-  };
-
-  const isCardUsed = (card: Card): boolean => {
-    return usedCards.has(getCardKey(card));
-  };
-
-  const markCardAsUsed = (card: Card) => {
-    usedCards.add(getCardKey(card));
-  };
-
-  const shuffleDeck = (inputDeck: Card[]): Card[] => {
-    const availableCards = inputDeck.filter(card => !isCardUsed(card));
-    const deck = [...availableCards];
-    
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-    
-    return deck;
-  };
-
-  const validateDeck = (deck: Card[]): boolean => {
-    const seen = new Set<string>();
-    const duplicates = new Set<string>();
-
-    deck.forEach(card => {
-      const cardKey = getCardKey(card);
-      if (seen.has(cardKey)) {
-        duplicates.add(cardKey);
-        console.error('Duplicate card found:', cardKey);
-      }
-      seen.add(cardKey);
-    });
-
-    if (duplicates.size > 0) {
-      console.error('Duplicate cards found:', Array.from(duplicates));
-      return false;
-    }
-
-    return true;
-  };
-
   const initializeSelectionCards = () => {
-    const standardDeck = createStandardDeck();
+    const standardDeck = getStandardDeck();
     const shuffledDeck = shuffleDeck(standardDeck);
-    const selectedCards = shuffledDeck.slice(0, 5);
+    const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
     
+    // Ensure selection cards have different values
     const uniqueValues = new Set(selectedCards.map(card => card.value));
     if (uniqueValues.size !== 5) {
       return initializeSelectionCards();
     }
 
-    selectedCards.forEach(markCardAsUsed);
     setSelectionCards(selectedCards);
+    setDeck(remaining);
   };
 
   const handleCardSelect = (index: number) => {
@@ -144,26 +80,16 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    const newDeck = createStandardDeck();
-    const availableCards = newDeck.filter(card => !isCardUsed(card));
-    const shuffledAvailable = shuffleDeck(availableCards);
-
-    const playerCards = shuffledAvailable.slice(0, 10);
-    const aiCards = shuffledAvailable.slice(10, 20);
-    const remainingDeck = shuffledAvailable.slice(20);
-
-    playerCards.forEach(markCardAsUsed);
-    aiCards.forEach(markCardAsUsed);
-
-    if (!validateDeck([...playerCards, ...aiCards, ...remainingDeck])) {
-      console.error('Invalid deck distribution');
-      usedCards.clear(); // Reset used cards
-      return dealInitialCards();
-    }
+    const shuffledDeck = shuffleDeck(deck);
+    const { dealt: playerCards, remaining: afterPlayer } = dealCards(shuffledDeck, 10);
+    const { dealt: aiCards, remaining: finalDeck } = dealCards(afterPlayer, 10);
 
     setPlayerHand(playerCards);
     setTableCards([]);
-    setDeck(remainingDeck);
+    setDeck(finalDeck);
+
+    // Log the state of all cards for debugging
+    logCardState([], playerCards, aiCards, finalDeck);
   };
 
   useEffect(() => {

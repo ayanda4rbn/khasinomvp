@@ -1,5 +1,6 @@
 import { Card } from '@/types/game';
 import { toast } from "sonner";
+import { isCardInArray } from './deckManager';
 
 export const handleAITurn = (
   tableCards: Card[],
@@ -9,11 +10,7 @@ export const handleAITurn = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void
 ) => {
   // Filter out cards that are already on the table
-  const availableCards = playerHand.filter(card => 
-    !tableCards.some(tableCard => 
-      tableCard.value === card.value && tableCard.suit === card.suit
-    )
-  );
+  const availableCards = playerHand.filter(card => !isCardInArray(card, tableCards));
 
   if (availableCards.length === 0) {
     toast.error("AI has no valid cards to play");
@@ -54,6 +51,13 @@ export const handleAITurn = (
       tableY: y,
       playedBy: 'ai' as const
     };
+
+    // Double-check that this card isn't already on the table
+    if (isCardInArray(newCard, tableCards)) {
+      console.error('Attempted to play duplicate card:', newCard);
+      setIsPlayerTurn(true);
+      return;
+    }
 
     setTableCards([...tableCards, newCard]);
 
