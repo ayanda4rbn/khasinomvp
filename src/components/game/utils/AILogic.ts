@@ -8,8 +8,21 @@ export const handleAITurn = (
   setPlayerHand: (cards: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void
 ) => {
-  const aiCardIndex = Math.floor(Math.random() * playerHand.length);
-  const aiCard = playerHand[aiCardIndex];
+  // Filter out cards that are already on the table
+  const availableCards = playerHand.filter(card => 
+    !tableCards.some(tableCard => 
+      tableCard.value === card.value && tableCard.suit === card.suit
+    )
+  );
+
+  if (availableCards.length === 0) {
+    toast.error("AI has no valid cards to play");
+    setIsPlayerTurn(true);
+    return;
+  }
+
+  const aiCardIndex = Math.floor(Math.random() * availableCards.length);
+  const aiCard = availableCards[aiCardIndex];
 
   let x, y;
   let isValidPosition = false;
@@ -44,8 +57,9 @@ export const handleAITurn = (
 
     setTableCards([...tableCards, newCard]);
 
-    const newPlayerHand = [...playerHand];
-    newPlayerHand.splice(aiCardIndex, 1);
+    const newPlayerHand = playerHand.filter(card => 
+      !(card.value === aiCard.value && card.suit === aiCard.suit)
+    );
     setPlayerHand(newPlayerHand);
 
     toast.info("AI discarded a card");

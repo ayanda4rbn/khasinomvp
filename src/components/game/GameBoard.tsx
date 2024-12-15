@@ -91,6 +91,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const cardIndex = parseInt(e.dataTransfer.getData('text/plain'));
     const card = playerHand[cardIndex];
     
+    // Validate the card hasn't been played already
+    const isCardAlreadyOnTable = tableCards.some(
+      tableCard => tableCard.value === card.value && tableCard.suit === card.suit
+    );
+
+    if (isCardAlreadyOnTable) {
+      toast.error("This card has already been played!");
+      return;
+    }
+    
     const tableRect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;

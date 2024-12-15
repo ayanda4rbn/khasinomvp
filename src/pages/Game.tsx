@@ -19,9 +19,9 @@ const Game = () => {
   const [deck, setDeck] = useState<Card[]>([]);
   const [playerHand, setPlayerHand] = useState<Card[]>([]);
   const [tableCards, setTableCards] = useState<Card[]>([]);
+  const [usedCards] = useState(new Set<string>());
 
   useEffect(() => {
-    // Check if user is logged in or playing as guest
     const guestName = localStorage.getItem("guestName");
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -37,7 +37,6 @@ const Game = () => {
     const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
     const values = Array.from({ length: 10 }, (_, i) => i + 1);
 
-    // Create exactly one card for each combination
     for (const suit of suits) {
       for (const value of values) {
         const card: Card = {
@@ -50,16 +49,25 @@ const Game = () => {
       }
     }
 
-    // Log the initial deck for debugging
-    console.log('Initial deck created:', deck.map(card => `${card.value}-${card.suit}`));
     return deck;
   };
 
+  const getCardKey = (card: Card): string => {
+    return `${card.value}-${card.suit}`;
+  };
+
+  const isCardUsed = (card: Card): boolean => {
+    return usedCards.has(getCardKey(card));
+  };
+
+  const markCardAsUsed = (card: Card) => {
+    usedCards.add(getCardKey(card));
+  };
+
   const shuffleDeck = (inputDeck: Card[]): Card[] => {
-    // Create a copy to avoid mutating the input
-    const deck = [...inputDeck];
+    const availableCards = inputDeck.filter(card => !isCardUsed(card));
+    const deck = [...availableCards];
     
-    // Fisher-Yates shuffle
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -69,19 +77,11 @@ const Game = () => {
   };
 
   const validateDeck = (deck: Card[]): boolean => {
-    // Check deck size
-    if (deck.length !== 40) {
-      console.error('Invalid deck size:', deck.length);
-      return false;
-    }
-
-    // Create a Set to track unique combinations
     const seen = new Set<string>();
     const duplicates = new Set<string>();
 
-    // Check for duplicates
     deck.forEach(card => {
-      const cardKey = `${card.value}-${card.suit}`;
+      const cardKey = getCardKey(card);
       if (seen.has(cardKey)) {
         duplicates.add(cardKey);
         console.error('Duplicate card found:', cardKey);
@@ -89,23 +89,9 @@ const Game = () => {
       seen.add(cardKey);
     });
 
-    // Log all cards for debugging
-    console.log('All cards in deck:', Array.from(seen));
-    
     if (duplicates.size > 0) {
       console.error('Duplicate cards found:', Array.from(duplicates));
       return false;
-    }
-
-    // Verify we have all required combinations
-    for (const suit of ['hearts', 'diamonds', 'clubs', 'spades']) {
-      for (let value = 1; value <= 10; value++) {
-        const cardKey = `${value}-${suit}`;
-        if (!seen.has(cardKey)) {
-          console.error('Missing card:', cardKey);
-          return false;
-        }
-      }
     }
 
     return true;
@@ -113,21 +99,15 @@ const Game = () => {
 
   const initializeSelectionCards = () => {
     const standardDeck = createStandardDeck();
-    if (!validateDeck(standardDeck)) {
-      console.error('Invalid deck during selection cards initialization');
-      return initializeSelectionCards();
-    }
-    
     const shuffledDeck = shuffleDeck(standardDeck);
     const selectedCards = shuffledDeck.slice(0, 5);
     
-    // Verify no duplicate values in selection cards
     const uniqueValues = new Set(selectedCards.map(card => card.value));
     if (uniqueValues.size !== 5) {
-      console.error('Duplicate values in selection cards');
       return initializeSelectionCards();
     }
 
+    selectedCards.forEach(markCardAsUsed);
     setSelectionCards(selectedCards);
   };
 
@@ -141,7 +121,6 @@ const Game = () => {
     setSelectionCards(newCards);
     setPlayerSelectedCard(selectedCard);
 
-    // AI selects a random card from remaining cards
     const remainingCards = newCards.filter((_, i) => i !== index);
     const aiCardIndex = Math.floor(Math.random() * remainingCards.length);
     const aiCard = remainingCards[aiCardIndex];
@@ -150,7 +129,6 @@ const Game = () => {
 
     setAiSelectedCard(aiCard);
 
-    // Determine who goes first
     const playerFirst = selectedCard.value < aiCard.value;
     setPlayerGoesFirst(playerFirst);
 
@@ -165,52 +143,26 @@ const Game = () => {
     }, 2000);
   };
 
-  const initializeDeck = (): Card[] => {
-    const standardDeck = createStandardDeck();
-    
-    if (!validateDeck(standardDeck)) {
-      console.error('Invalid deck during initialization');
-      return initializeDeck();
-    }
-    
-    const shuffledDeck = shuffleDeck(standardDeck);
-    
-    if (!validateDeck(shuffledDeck)) {
-      console.error('Invalid deck after shuffling');
-      return initializeDeck();
-    }
-
-    return shuffledDeck;
-  };
-
   const dealInitialCards = () => {
-    const newDeck = initializeDeck();
-    
-    // Verify deck before dealing
-    if (!validateDeck(newDeck)) {
-      console.error('Invalid deck before dealing');
-      return dealInitialCards();
-    }
+    const newDeck = createStandardDeck();
+    const availableCards = newDeck.filter(card => !isCardUsed(card));
+    const shuffledAvailable = shuffleDeck(availableCards);
 
-    const playerCards = newDeck.slice(0, 10);
-    const aiCards = newDeck.slice(10, 20);
-    const remainingDeck = newDeck.slice(20);
+    const playerCards = shuffledAvailable.slice(0, 10);
+    const aiCards = shuffledAvailable.slice(10, 20);
+    const remainingDeck = shuffledAvailable.slice(20);
 
-    // Verify each portion has the correct number of cards
-    if (playerCards.length !== 10 || aiCards.length !== 10 || remainingDeck.length !== 20) {
-      console.error('Invalid deal distribution');
-      return dealInitialCards();
-    }
+    playerCards.forEach(markCardAsUsed);
+    aiCards.forEach(markCardAsUsed);
 
-    // Verify no duplicates across different portions
-    const allCards = [...playerCards, ...aiCards, ...remainingDeck];
-    if (!validateDeck(allCards)) {
-      console.error('Duplicates found after dealing');
+    if (!validateDeck([...playerCards, ...aiCards, ...remainingDeck])) {
+      console.error('Invalid deck distribution');
+      usedCards.clear(); // Reset used cards
       return dealInitialCards();
     }
 
     setPlayerHand(playerCards);
-    setTableCards([]); // Start with empty table
+    setTableCards([]);
     setDeck(remainingDeck);
   };
 
