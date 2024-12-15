@@ -18,9 +18,18 @@ export const handleAITurn = (
     return;
   }
 
+  // Select a random card from available cards
   const aiCardIndex = Math.floor(Math.random() * availableCards.length);
   const aiCard = availableCards[aiCardIndex];
 
+  // Double-check that this card isn't already on the table
+  if (isCardInArray(aiCard, tableCards)) {
+    console.error('Attempted to play duplicate card:', aiCard);
+    setIsPlayerTurn(true);
+    return;
+  }
+
+  // Find a valid position for the card
   let x, y;
   let isValidPosition = false;
   const maxAttempts = 50;
@@ -52,15 +61,8 @@ export const handleAITurn = (
       playedBy: 'ai' as const
     };
 
-    // Double-check that this card isn't already on the table
-    if (isCardInArray(newCard, tableCards)) {
-      console.error('Attempted to play duplicate card:', newCard);
-      setIsPlayerTurn(true);
-      return;
-    }
-
     setTableCards([...tableCards, newCard]);
-
+    
     const newPlayerHand = playerHand.filter(card => 
       !(card.value === aiCard.value && card.suit === aiCard.suit)
     );

@@ -6,7 +6,13 @@ import { CardSelection } from "@/components/game/CardSelection";
 import { GameBoard } from "@/components/game/GameBoard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getStandardDeck, shuffleDeck, dealCards, logCardState } from "@/components/game/utils/deckManager";
+import { 
+  getStandardDeck, 
+  shuffleDeck, 
+  dealCards, 
+  logCardState,
+  validateDeckState 
+} from "@/components/game/utils/deckManager";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -37,9 +43,9 @@ const Game = () => {
     const shuffledDeck = shuffleDeck(standardDeck);
     const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
     
-    // Ensure selection cards have different values
-    const uniqueValues = new Set(selectedCards.map(card => card.value));
-    if (uniqueValues.size !== 5) {
+    // Validate the dealt cards
+    if (selectedCards.length === 0) {
+      console.error('Failed to deal selection cards');
       return initializeSelectionCards();
     }
 
@@ -84,9 +90,24 @@ const Game = () => {
     const { dealt: playerCards, remaining: afterPlayer } = dealCards(shuffledDeck, 10);
     const { dealt: aiCards, remaining: finalDeck } = dealCards(afterPlayer, 10);
 
+    if (playerCards.length === 0 || aiCards.length === 0) {
+      console.error('Failed to deal initial cards');
+      return;
+    }
+
     setPlayerHand(playerCards);
     setTableCards([]);
     setDeck(finalDeck);
+
+    // Validate the entire deck state after dealing
+    if (!validateDeckState([], playerCards, aiCards, finalDeck)) {
+      console.error('Invalid deck state after dealing initial cards');
+      toast({
+        title: "Error",
+        description: "There was an error dealing the cards. Please refresh the page.",
+      });
+      return;
+    }
 
     // Log the state of all cards for debugging
     logCardState([], playerCards, aiCards, finalDeck);
