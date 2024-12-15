@@ -32,31 +32,68 @@ const Game = () => {
     checkAuth();
   }, [navigate]);
 
-  const initializeSelectionCards = () => {
-    const values = Array.from({ length: 10 }, (_, i) => i + 1);
+  const createStandardDeck = (): Card[] => {
     const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
-    const allCards: Card[] = [];
-    
-    // Generate all possible cards first
+    const values = Array.from({ length: 10 }, (_, i) => i + 1);
+    const deck: Card[] = [];
+
+    // Create exactly one card for each combination
     for (const suit of suits) {
       for (const value of values) {
-        allCards.push({ value, suit, faceUp: false });
+        deck.push({
+          suit,
+          value,
+          faceUp: false,
+          selected: false,
+        });
       }
     }
-    
-    // Randomly select 5 unique cards for selection
-    const selectedCards: Card[] = [];
-    while (selectedCards.length < 5) {
-      const randomIndex = Math.floor(Math.random() * allCards.length);
-      const card = allCards[randomIndex];
-      
-      // Only add if we don't already have a card with this value
-      if (!selectedCards.some(c => c.value === card.value)) {
-        selectedCards.push(card);
-        allCards.splice(randomIndex, 1); // Remove the card so it can't be selected again
-      }
+
+    return deck;
+  };
+
+  const shuffleDeck = (deck: Card[]): Card[] => {
+    const shuffled = [...deck];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
+    return shuffled;
+  };
+
+  const validateDeck = (deck: Card[]): boolean => {
+    if (deck.length !== 40) {
+      console.error('Invalid deck size:', deck.length);
+      return false;
+    }
+
+    const seen = new Set<string>();
+    for (const card of deck) {
+      const cardKey = `${card.value}-${card.suit}`;
+      if (seen.has(cardKey)) {
+        console.error('Duplicate card found:', cardKey);
+        return false;
+      }
+      seen.add(cardKey);
+    }
+
+    return seen.size === 40;
+  };
+
+  const initializeSelectionCards = () => {
+    const standardDeck = createStandardDeck();
+    const shuffledDeck = shuffleDeck(standardDeck);
     
+    // Take the first 5 cards for selection
+    const selectedCards = shuffledDeck.slice(0, 5);
+    
+    // Verify no duplicate values in selection cards
+    const uniqueValues = new Set(selectedCards.map(card => card.value));
+    if (uniqueValues.size !== 5) {
+      console.error('Duplicate values in selection cards, retrying...');
+      return initializeSelectionCards();
+    }
+
     setSelectionCards(selectedCards);
   };
 
@@ -94,44 +131,36 @@ const Game = () => {
     }, 2000);
   };
 
-  const initializeDeck = () => {
-    const suits = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
-    const values = Array.from({ length: 10 }, (_, i) => i + 1);
-    const newDeck: Card[] = [];
+  const initializeDeck = (): Card[] => {
+    const standardDeck = createStandardDeck();
+    const shuffledDeck = shuffleDeck(standardDeck);
 
-    // Create exactly one card for each suit and value combination
-    for (const suit of suits) {
-      for (const value of values) {
-        newDeck.push({
-          suit,
-          value,
-          faceUp: false,
-          selected: false,
-        });
-      }
+    if (!validateDeck(shuffledDeck)) {
+      console.error('Deck validation failed, retrying...');
+      return initializeDeck();
     }
 
-    // Fisher-Yates shuffle algorithm
-    for (let i = newDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
-    }
-
-    // Verify deck integrity
-    const uniqueCards = new Set(newDeck.map(card => `${card.value}-${card.suit}`));
-    if (uniqueCards.size !== 40) {
-      console.error('Deck integrity check failed');
-      return initializeDeck(); // Try again if we somehow got duplicates
-    }
-
-    return newDeck;
+    return shuffledDeck;
   };
 
   const dealInitialCards = () => {
     const newDeck = initializeDeck();
+    
+    // Verify deck before dealing
+    if (!validateDeck(newDeck)) {
+      console.error('Invalid deck before dealing, retrying...');
+      return dealInitialCards();
+    }
+
     const playerCards = newDeck.slice(0, 10);
     const aiCards = newDeck.slice(10, 20);
     const remainingDeck = newDeck.slice(20);
+
+    // Verify each portion has the correct number of cards
+    if (playerCards.length !== 10 || aiCards.length !== 10 || remainingDeck.length !== 20) {
+      console.error('Invalid deal distribution, retrying...');
+      return dealInitialCards();
+    }
 
     setPlayerHand(playerCards);
     setTableCards([]); // Start with empty table
