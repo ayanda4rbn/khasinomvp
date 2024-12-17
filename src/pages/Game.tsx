@@ -10,8 +10,7 @@ import {
   getStandardDeck, 
   shuffleDeck, 
   dealCards, 
-  logCardState,
-  validateDeckState 
+  logCardState
 } from "@/components/game/utils/deckManager";
 
 const Game = () => {
@@ -43,14 +42,11 @@ const Game = () => {
     const shuffledDeck = shuffleDeck(standardDeck);
     const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
     
-    // Validate the dealt cards
-    if (selectedCards.length === 0) {
-      console.error('Failed to deal selection cards');
-      return initializeSelectionCards();
-    }
-
     setSelectionCards(selectedCards);
     setDeck(remaining);
+    
+    // Log the initial state
+    logCardState([], [], [], shuffledDeck);
   };
 
   const handleCardSelect = (index: number) => {
@@ -88,29 +84,13 @@ const Game = () => {
   const dealInitialCards = () => {
     const shuffledDeck = shuffleDeck(deck);
     const { dealt: playerCards, remaining: afterPlayer } = dealCards(shuffledDeck, 10);
-    const { dealt: aiCards, remaining: finalDeck } = dealCards(afterPlayer, 10);
-
-    if (playerCards.length === 0 || aiCards.length === 0) {
-      console.error('Failed to deal initial cards');
-      return;
-    }
-
+    
     setPlayerHand(playerCards);
     setTableCards([]);
-    setDeck(finalDeck);
-
-    // Validate the entire deck state after dealing
-    if (!validateDeckState([], playerCards, aiCards, finalDeck)) {
-      console.error('Invalid deck state after dealing initial cards');
-      toast({
-        title: "Error",
-        description: "There was an error dealing the cards. Please refresh the page.",
-      });
-      return;
-    }
-
-    // Log the state of all cards for debugging
-    logCardState([], playerCards, aiCards, finalDeck);
+    setDeck(afterPlayer);
+    
+    // Log the state after dealing
+    logCardState([], playerCards, [], afterPlayer);
   };
 
   useEffect(() => {

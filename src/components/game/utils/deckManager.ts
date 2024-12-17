@@ -1,25 +1,42 @@
 import { Card } from '@/types/game';
 
-// Initialize a single, standard deck that will be reused
-const STANDARD_DECK: Card[] = [];
-const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
-const VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-// Create the standard deck once
-for (const suit of SUITS) {
-  for (const value of VALUES) {
-    STANDARD_DECK.push({
-      suit,
-      value,
+// Create a single, immutable standard deck
+const STANDARD_DECK: readonly Card[] = Object.freeze(
+  ['hearts', 'diamonds', 'clubs', 'spades'].flatMap(suit => 
+    Array.from({ length: 10 }, (_, i) => ({
+      suit: suit as Card['suit'],
+      value: i + 1,
       faceUp: false,
-      selected: false,
-    });
-  }
-}
+      selected: false
+    }))
+  )
+);
 
-// Function to get a fresh copy of the standard deck
+// Function to validate the deck has exactly 40 unique cards
+const validateDeck = (deck: Card[]): boolean => {
+  if (deck.length !== 40) {
+    console.error(`Invalid deck length: ${deck.length}`);
+    return false;
+  }
+
+  const seen = new Set<string>();
+  for (const card of deck) {
+    const cardKey = `${card.value}-${card.suit}`;
+    if (seen.has(cardKey)) {
+      console.error(`Duplicate card found: ${cardKey}`);
+      return false;
+    }
+    seen.add(cardKey);
+  }
+
+  return true;
+};
+
+// Get a fresh copy of the standard deck
 export const getStandardDeck = (): Card[] => {
-  return STANDARD_DECK.map(card => ({ ...card }));
+  const deck = STANDARD_DECK.map(card => ({ ...card }));
+  console.log('Fresh deck created with length:', deck.length);
+  return deck;
 };
 
 // Fisher-Yates shuffle algorithm
@@ -29,6 +46,12 @@ export const shuffleDeck = (deck: Card[]): Card[] => {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
+  
+  if (!validateDeck(shuffled)) {
+    console.error('Deck validation failed after shuffle');
+    return getStandardDeck(); // Return a fresh deck if validation fails
+  }
+  
   return shuffled;
 };
 
@@ -42,46 +65,14 @@ export const dealCards = (deck: Card[], numCards: number): { dealt: Card[], rema
   const dealt = deck.slice(0, numCards);
   const remaining = deck.slice(numCards);
   
-  // Validate no duplicates in dealt cards
-  const dealtKeys = new Set(dealt.map(card => `${card.value}-${card.suit}`));
-  if (dealtKeys.size !== dealt.length) {
-    console.error('Duplicate cards detected in dealt cards');
-    return { dealt: [], remaining: deck };
+  // Validate both dealt cards and remaining deck
+  if (!validateDeck([...dealt, ...remaining])) {
+    console.error('Deck validation failed during dealing');
+    const freshDeck = getStandardDeck();
+    return dealCards(freshDeck, numCards);
   }
   
   return { dealt, remaining };
-};
-
-// Function to validate if a card exists in an array
-export const isCardInArray = (card: Card, array: Card[]): boolean => {
-  return array.some(c => c.value === card.value && c.suit === card.suit);
-};
-
-// Function to validate the entire deck state
-export const validateDeckState = (
-  tableCards: Card[], 
-  playerHand: Card[], 
-  aiHand: Card[], 
-  deck: Card[]
-): boolean => {
-  const allCards = [...tableCards, ...playerHand, ...aiHand, ...deck];
-  const cardKeys = new Set<string>();
-  
-  for (const card of allCards) {
-    const key = `${card.value}-${card.suit}`;
-    if (cardKeys.has(key)) {
-      console.error(`Duplicate card found: ${key}`);
-      return false;
-    }
-    cardKeys.add(key);
-  }
-  
-  if (allCards.length !== 40) {
-    console.error(`Invalid total number of cards: ${allCards.length}`);
-    return false;
-  }
-  
-  return true;
 };
 
 // Debug function to log the current state of cards
@@ -91,15 +82,27 @@ export const logCardState = (
   aiHand: Card[], 
   deck: Card[]
 ) => {
+  const allCards = [...tableCards, ...playerHand, ...aiHand, ...deck];
   console.log('Card Count Check:');
   console.log(`Table Cards: ${tableCards.length}`);
   console.log(`Player Hand: ${playerHand.length}`);
   console.log(`AI Hand: ${aiHand.length}`);
   console.log(`Remaining Deck: ${deck.length}`);
-  console.log(`Total Cards: ${tableCards.length + playerHand.length + aiHand.length + deck.length}`);
+  console.log(`Total Cards: ${allCards.length}`);
   
-  // Validate deck state
-  if (!validateDeckState(tableCards, playerHand, aiHand, deck)) {
-    console.error('Invalid deck state detected!');
+  // Check for duplicates
+  const seen = new Set<string>();
+  const duplicates = allCards.filter(card => {
+    const cardKey = `${card.value}-${card.suit}`;
+    if (seen.has(cardKey)) {
+      console.error(`Duplicate found: ${cardKey}`);
+      return true;
+    }
+    seen.add(cardKey);
+    return false;
+  });
+  
+  if (duplicates.length > 0) {
+    console.error('Duplicate cards found:', duplicates);
   }
 };
