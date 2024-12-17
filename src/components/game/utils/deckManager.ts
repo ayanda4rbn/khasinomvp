@@ -39,7 +39,7 @@ export const isCardInArray = (card: Card, array: Card[]): boolean => {
 
 // Get a fresh copy of the standard deck
 export const getStandardDeck = (): Card[] => {
-  const deck = [...STANDARD_DECK];
+  const deck = STANDARD_DECK.map(card => ({ ...card }));
   console.log('Fresh deck created with length:', deck.length);
   return deck;
 };
