@@ -39,19 +39,23 @@ export const isCardInArray = (card: Card, array: Card[]): boolean => {
 
 // Get a fresh copy of the standard deck
 export const getStandardDeck = (): Card[] => {
-  const deck = STANDARD_DECK.map(card => ({ ...card }));
+  const deck = [...STANDARD_DECK];
   console.log('Fresh deck created with length:', deck.length);
   return deck;
 };
 
-// Fisher-Yates shuffle algorithm
+// Fisher-Yates shuffle algorithm with validation
 export const shuffleDeck = (deck: Card[]): Card[] => {
-  const shuffled = [...deck];
+  // Create a deep copy of the deck to shuffle
+  const shuffled = deck.map(card => ({ ...card }));
+  
+  // Perform Fisher-Yates shuffle
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   
+  // Validate the shuffled deck
   if (!validateDeck(shuffled)) {
     console.error('Deck validation failed after shuffle');
     return getStandardDeck(); // Return a fresh deck if validation fails
@@ -67,8 +71,9 @@ export const dealCards = (deck: Card[], numCards: number): { dealt: Card[], rema
     return { dealt: [], remaining: deck };
   }
   
-  const dealt = deck.slice(0, numCards);
-  const remaining = deck.slice(numCards);
+  // Create deep copies of the cards being dealt
+  const dealt = deck.slice(0, numCards).map(card => ({ ...card }));
+  const remaining = deck.slice(numCards).map(card => ({ ...card }));
   
   // Validate both dealt cards and remaining deck
   if (!validateDeck([...dealt, ...remaining])) {
