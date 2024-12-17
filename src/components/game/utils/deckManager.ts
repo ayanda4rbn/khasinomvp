@@ -32,6 +32,11 @@ const validateDeck = (deck: Card[]): boolean => {
   return true;
 };
 
+// Helper function to check if a card exists in an array
+export const isCardInArray = (card: Card, array: Card[]): boolean => {
+  return array.some(c => c.value === card.value && c.suit === card.suit);
+};
+
 // Get a fresh copy of the standard deck
 export const getStandardDeck = (): Card[] => {
   const deck = STANDARD_DECK.map(card => ({ ...card }));
