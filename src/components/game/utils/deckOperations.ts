@@ -1,11 +1,11 @@
 import { Card } from '@/types/game';
-import { validateDeck } from './deckValidation';
+import { validateDeck, isCardInArray } from './deckValidation';
 import { getStandardDeck } from './deckCore';
 
 // Fisher-Yates shuffle algorithm with validation
 export const shuffleDeck = (deck: Card[]): Card[] => {
   // Create a deep copy of the deck to shuffle
-  const shuffled = [...deck].map(card => ({ ...card }));
+  const shuffled = deck.map(card => ({ ...card }));
   
   // Perform Fisher-Yates shuffle
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -16,7 +16,8 @@ export const shuffleDeck = (deck: Card[]): Card[] => {
   // Validate the shuffled deck
   if (!validateDeck(shuffled)) {
     console.error('Deck validation failed after shuffle');
-    return shuffleDeck(getStandardDeck()); // Try again with a fresh deck
+    const freshDeck = getStandardDeck();
+    return shuffleDeck(freshDeck); // Try again with a fresh deck
   }
   
   return shuffled;
@@ -33,8 +34,17 @@ export const dealCards = (deck: Card[], numCards: number): { dealt: Card[], rema
   const dealt = deck.slice(0, numCards).map(card => ({ ...card }));
   const remaining = deck.slice(numCards).map(card => ({ ...card }));
   
-  // Validate both dealt cards and remaining deck
-  if (!validateDeck([...dealt, ...remaining])) {
+  // Additional validation to ensure no duplicates between dealt and remaining cards
+  const allCards = [...dealt, ...remaining];
+  const seen = new Set<string>();
+  const hasDuplicates = allCards.some(card => {
+    const cardKey = `${card.value}-${card.suit}`;
+    if (seen.has(cardKey)) return true;
+    seen.add(cardKey);
+    return false;
+  });
+
+  if (hasDuplicates || !validateDeck(allCards)) {
     console.error('Deck validation failed during dealing');
     const freshDeck = getStandardDeck();
     const shuffledDeck = shuffleDeck(freshDeck);

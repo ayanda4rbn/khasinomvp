@@ -22,7 +22,10 @@ export const validateDeck = (deck: Card[]): boolean => {
 
 // Helper function to check if a card exists in an array
 export const isCardInArray = (card: Card, array: Card[]): boolean => {
-  return array.some(c => c.value === card.value && c.suit === card.suit);
+  return array.some(c => 
+    c.value === card.value && 
+    c.suit === card.suit
+  );
 };
 
 // Debug function to log the current state of cards
@@ -41,18 +44,20 @@ export const logCardState = (
   console.log(`Total Cards: ${allCards.length}`);
   
   // Check for duplicates
-  const seen = new Set<string>();
-  const duplicates = allCards.filter(card => {
+  const seen = new Map<string, Card[]>();
+  allCards.forEach(card => {
     const cardKey = `${card.value}-${card.suit}`;
-    if (seen.has(cardKey)) {
-      console.error(`Duplicate found: ${cardKey}`);
-      return true;
+    if (!seen.has(cardKey)) {
+      seen.set(cardKey, [card]);
+    } else {
+      seen.get(cardKey)?.push(card);
     }
-    seen.add(cardKey);
-    return false;
   });
   
-  if (duplicates.length > 0) {
-    console.error('Duplicate cards found:', duplicates);
-  }
+  // Log any duplicates found
+  seen.forEach((cards, cardKey) => {
+    if (cards.length > 1) {
+      console.error(`Duplicate found for ${cardKey}:`, cards);
+    }
+  });
 };
