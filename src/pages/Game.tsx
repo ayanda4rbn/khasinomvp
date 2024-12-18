@@ -6,12 +6,7 @@ import { CardSelection } from "@/components/game/CardSelection";
 import { GameBoard } from "@/components/game/GameBoard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  getStandardDeck, 
-  shuffleDeck, 
-  dealCards, 
-  logCardState
-} from "@/components/game/utils/deckManager";
+import { getStandardDeck, shuffleDeck, dealCards } from "@/components/game/utils/deckManager";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -22,7 +17,7 @@ const Game = () => {
   const [playerSelectedCard, setPlayerSelectedCard] = useState<Card | null>(null);
   const [aiSelectedCard, setAiSelectedCard] = useState<Card | null>(null);
   const [playerGoesFirst, setPlayerGoesFirst] = useState<boolean | null>(null);
-  const [deck, setDeck] = useState<Card[]>([]);
+  const [gameDeck, setGameDeck] = useState<Card[]>([]);
   const [playerHand, setPlayerHand] = useState<Card[]>([]);
   const [tableCards, setTableCards] = useState<Card[]>([]);
 
@@ -37,17 +32,19 @@ const Game = () => {
     checkAuth();
   }, [navigate]);
 
-  const initializeSelectionCards = () => {
-    const standardDeck = getStandardDeck();
-    const shuffledDeck = shuffleDeck(standardDeck);
-    const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
-    
-    setSelectionCards(selectedCards);
-    setDeck(remaining);
-    
-    // Log the initial state
-    logCardState([], [], [], shuffledDeck);
-  };
+  // Initialize the game deck when game mode is selected
+  useEffect(() => {
+    if (gameMode === "ai") {
+      const freshDeck = getStandardDeck();
+      const shuffledDeck = shuffleDeck(freshDeck);
+      setGameDeck(shuffledDeck);
+      
+      // Deal 5 cards for initial selection
+      const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
+      setSelectionCards(selectedCards);
+      setGameDeck(remaining);
+    }
+  }, [gameMode]);
 
   const handleCardSelect = (index: number) => {
     if (playerSelectedCard) return;
@@ -82,22 +79,14 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    const shuffledDeck = shuffleDeck(deck);
-    const { dealt: playerCards, remaining: afterPlayer } = dealCards(shuffledDeck, 10);
+    // Shuffle the remaining deck before dealing
+    const shuffledDeck = shuffleDeck(gameDeck);
+    const { dealt: playerCards, remaining } = dealCards(shuffledDeck, 10);
     
     setPlayerHand(playerCards);
     setTableCards([]);
-    setDeck(afterPlayer);
-    
-    // Log the state after dealing
-    logCardState([], playerCards, [], afterPlayer);
+    setGameDeck(remaining); // Store remaining cards for round 2
   };
-
-  useEffect(() => {
-    if (gameMode === "ai") {
-      initializeSelectionCards();
-    }
-  }, [gameMode]);
 
   return (
     <>
@@ -115,7 +104,7 @@ const Game = () => {
           playerGoesFirst={playerGoesFirst!}
           tableCards={tableCards}
           playerHand={playerHand}
-          deck={deck}
+          deck={gameDeck}
         />
       )}
     </>

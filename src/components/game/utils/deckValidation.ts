@@ -17,6 +17,20 @@ export const validateDeck = (deck: Card[]): boolean => {
     seen.add(cardKey);
   }
 
+  // Validate that we have all required cards
+  const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+  const values = Array.from({ length: 10 }, (_, i) => i + 1);
+  
+  for (const suit of suits) {
+    for (const value of values) {
+      const cardKey = `${value}-${suit}`;
+      if (!seen.has(cardKey)) {
+        console.error(`Missing card: ${cardKey}`);
+        return false;
+      }
+    }
+  }
+
   return true;
 };
 
