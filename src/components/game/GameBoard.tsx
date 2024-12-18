@@ -23,7 +23,7 @@ interface GameBoardProps {
   playerGoesFirst: boolean;
   tableCards: Card[];
   playerHand: Card[];
-  deck: Card[]; // Add deck prop
+  deck: Card[];
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({ 
@@ -139,10 +139,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div className="flex justify-between items-center text-white mb-2">
         <div className="flex items-center gap-4">
           <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
-            <AlertDialogTrigger asChild>
+            <AlertDialogTrigger>
               <h2 className="text-2xl font-bold cursor-pointer hover:text-casino-gold">
                 Cassino Game
-              </AlertDialogTrigger>
+              </h2>
+            </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Leave Game?</AlertDialogTitle>
