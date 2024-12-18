@@ -32,12 +32,11 @@ const Game = () => {
     checkAuth();
   }, [navigate]);
 
-  // Initialize the game deck when game mode is selected
   useEffect(() => {
     if (gameMode === "ai") {
+      // Initialize a fresh deck for the game
       const freshDeck = getStandardDeck();
       const shuffledDeck = shuffleDeck(freshDeck);
-      setGameDeck(shuffledDeck);
       
       // Deal 5 cards for initial selection
       const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
@@ -49,19 +48,13 @@ const Game = () => {
   const handleCardSelect = (index: number) => {
     if (playerSelectedCard) return;
 
-    const newCards = [...selectionCards];
-    const selectedCard = newCards[index];
-    selectedCard.faceUp = true;
-    selectedCard.selected = true;
-    setSelectionCards(newCards);
+    const selectedCard = selectionCards[index];
     setPlayerSelectedCard(selectedCard);
 
-    const remainingCards = newCards.filter((_, i) => i !== index);
+    // AI selects a random card from remaining cards
+    const remainingCards = selectionCards.filter((_, i) => i !== index);
     const aiCardIndex = Math.floor(Math.random() * remainingCards.length);
     const aiCard = remainingCards[aiCardIndex];
-    aiCard.faceUp = true;
-    aiCard.selected = true;
-
     setAiSelectedCard(aiCard);
 
     const playerFirst = selectedCard.value < aiCard.value;
@@ -79,7 +72,7 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    // Shuffle the remaining deck before dealing
+    // Deal 10 cards to each player for round 1
     const shuffledDeck = shuffleDeck(gameDeck);
     const { dealt: playerCards, remaining } = dealCards(shuffledDeck, 10);
     

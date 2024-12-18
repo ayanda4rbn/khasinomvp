@@ -14,8 +14,5 @@ export const STANDARD_DECK: readonly Card[] = Object.freeze(
 
 // Get a fresh copy of the standard deck
 export const getStandardDeck = (): Card[] => {
-  // Create a deep copy of the standard deck
-  const deck = STANDARD_DECK.map(card => ({ ...card }));
-  console.log('Fresh deck created with length:', deck.length);
-  return deck;
+  return STANDARD_DECK.map(card => ({ ...card }));
 };
