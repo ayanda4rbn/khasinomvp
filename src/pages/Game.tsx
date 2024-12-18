@@ -48,14 +48,22 @@ const Game = () => {
   const handleCardSelect = (index: number) => {
     if (playerSelectedCard) return;
 
-    const selectedCard = selectionCards[index];
+    const selectedCard = { ...selectionCards[index], faceUp: true };
     setPlayerSelectedCard(selectedCard);
 
     // AI selects a random card from remaining cards
     const remainingCards = selectionCards.filter((_, i) => i !== index);
     const aiCardIndex = Math.floor(Math.random() * remainingCards.length);
-    const aiCard = remainingCards[aiCardIndex];
+    const aiCard = { ...remainingCards[aiCardIndex], faceUp: true };
     setAiSelectedCard(aiCard);
+
+    // Update the selection cards to show both selected cards
+    const updatedSelectionCards = selectionCards.map((card, i) => {
+      if (i === index) return selectedCard;
+      if (i === aiCardIndex) return aiCard;
+      return card;
+    });
+    setSelectionCards(updatedSelectionCards);
 
     const playerFirst = selectedCard.value < aiCard.value;
     setPlayerGoesFirst(playerFirst);
@@ -73,12 +81,12 @@ const Game = () => {
 
   const dealInitialCards = () => {
     // Deal 10 cards to each player for round 1
-    const shuffledDeck = shuffleDeck(gameDeck);
-    const { dealt: playerCards, remaining } = dealCards(shuffledDeck, 10);
+    const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, 10);
+    const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, 10);
     
     setPlayerHand(playerCards);
     setTableCards([]);
-    setGameDeck(remaining); // Store remaining cards for round 2
+    setGameDeck(afterAIDeal); // Store remaining cards for round 2
   };
 
   return (

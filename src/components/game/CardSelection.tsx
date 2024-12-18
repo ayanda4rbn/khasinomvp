@@ -21,7 +21,7 @@ export const CardSelection: React.FC<CardSelectionProps> = ({ selectionCards, on
           <CardComponent
             key={`selection-${index}`}
             card={card}
-            onClick={() => !card.faceUp && onCardSelect(index)}
+            onClick={() => onCardSelect(index)}
           />
         ))}
       </div>
