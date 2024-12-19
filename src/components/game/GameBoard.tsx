@@ -39,10 +39,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const playerName = localStorage.getItem("guestName") || "Player";
   const [tableCards, setTableCards] = useState<Card[]>(initialTableCards);
   const [playerHand, setPlayerHand] = useState<Card[]>(initialPlayerHand);
-  const [aiHand, setAiHand] = useState<Card[]>(initialAiHand);  // Updated to use initialAiHand
+  const [aiHand, setAiHand] = useState<Card[]>(initialAiHand);
   const [isPlayerTurn, setIsPlayerTurn] = useState(playerGoesFirst);
   const [currentRound, setCurrentRound] = useState(1);
   const [deck, setDeck] = useState<Card[]>(initialDeck);
+  const [builds, setBuilds] = useState<BuildType[]>([]);
+  const [playerChowedCards, setPlayerChowedCards] = useState<Card[]>([]);
+  const [aiChowedCards, setAiChowedCards] = useState<Card[]>([]);
 
   // Effect to handle AI's turn
   useEffect(() => {
@@ -51,16 +54,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         handleAITurn(
           tableCards, 
           aiHand, 
-          [], // Empty builds array as it's not used in current implementation
+          builds,
           setTableCards, 
           setAiHand,
-          () => {}, // Empty setBuilds function as it's not used
+          setBuilds,
           setIsPlayerTurn
         );
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isPlayerTurn, tableCards, aiHand]);
+  }, [isPlayerTurn, tableCards, aiHand, builds]);
 
   // Effect to check if round is over and start new round
   useEffect(() => {
@@ -101,6 +104,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const cardIndex = parseInt(e.dataTransfer.getData('text/plain'));
     const card = playerHand[cardIndex];
     
+    // Check if player has the matching card before allowing build
+    const buildValue = card.value;
+    const hasMatchingCard = playerHand.some(c => c.value === buildValue);
+    
+    if (!hasMatchingCard) {
+      toast.error("You must have a matching card to build!");
+      return;
+    }
+    
     const tableRect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
@@ -127,7 +139,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       ...card,
       tableX: x,
       tableY: y,
-      playedBy: 'player' as const
+      playedBy: 'player' as const,
+      faceUp: true
     };
 
     setTableCards([...tableCards, newCard]);
@@ -198,6 +211,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           onDragOver={handleDragOver}
           onDrop={handleTableDrop}
           playerName={playerName}
+          playerChowedCards={playerChowedCards}
+          aiChowedCards={aiChowedCards}
         />
       </div>
 

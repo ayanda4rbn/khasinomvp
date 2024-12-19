@@ -1,14 +1,6 @@
 import { Card } from '@/types/game';
 import { toast } from "sonner";
 
-type BuildType = {
-  id: number;
-  cards: Card[];
-  value: number;
-  position: { x: number; y: number };
-  owner: 'player' | 'ai' | null;
-};
-
 // Helper function to check if a card can capture any cards on the table
 const canCaptureCards = (card: Card, tableCards: Card[], builds: BuildType[]): { cards: Card[], builds: BuildType[] } => {
   const captureCards: Card[] = [];
@@ -77,7 +69,7 @@ const findBestMove = (
     }
   }
 
-  // Priority 3: Build if possible
+  // Priority 3: Build if possible (only if AI has the matching card)
   for (const aiCard of aiHand) {
     for (const tableCard of tableCards) {
       const sum = aiCard.value + tableCard.value;
@@ -137,8 +129,8 @@ export const handleAITurn = (
 
   switch (move.type) {
     case 'capture':
-      // Remove captured cards from table
       if (move.captureCards?.length) {
+        // Add captured cards to AI's chowed pile face up
         setTableCards(tableCards.filter(card => 
           !move.captureCards?.some(captureCard => 
             captureCard.value === card.value && 
@@ -146,7 +138,6 @@ export const handleAITurn = (
           )
         ));
       }
-      // Remove captured builds
       if (move.captureBuilds?.length) {
         setBuilds(builds.filter(build => 
           !move.captureBuilds?.some(captureBuild => 
@@ -159,43 +150,65 @@ export const handleAITurn = (
 
     case 'build':
       if (move.buildWith) {
-        const x = Math.random() * 400 + 50;
-        const y = Math.random() * 200 + 50;
-        const newBuild: BuildType = {
-          id: Date.now(),
-          cards: [move.card, move.buildWith],
-          value: move.card.value + move.buildWith.value,
-          position: { x, y },
-          owner: 'ai'
-        };
-        setBuilds([...builds, newBuild]);
-        setTableCards(tableCards.filter(card => 
-          card.value !== move.buildWith.value || 
-          card.suit !== move.buildWith.suit
-        ));
-        toast.info("AI created a build!");
+        // Check if AI has the matching card before building
+        const buildValue = move.card.value + move.buildWith.value;
+        if (aiHand.some(card => card.value === buildValue)) {
+          const x = Math.random() * 400 + 50;
+          const y = Math.random() * 200 + 50;
+          const newBuild: BuildType = {
+            id: Date.now(),
+            cards: [move.card, move.buildWith],
+            value: buildValue,
+            position: { x, y },
+            owner: 'ai'
+          };
+          setBuilds([...builds, newBuild]);
+          setTableCards(tableCards.filter(card => 
+            card.value !== move.buildWith.value || 
+            card.suit !== move.buildWith.suit
+          ));
+          toast.info("AI created a build!");
+        } else {
+          // If AI doesn't have the matching card, discard instead
+          handleAIDiscard(move.card, tableCards, setTableCards);
+        }
       }
       break;
 
     case 'discard':
-      const x = Math.random() * 400 + 50;
-      const y = Math.random() * 200 + 50;
-      setTableCards([...tableCards, { 
-        ...move.card, 
-        tableX: x, 
-        tableY: y,
-        playedBy: 'ai' as const,
-        faceUp: true 
-      }]);
+      handleAIDiscard(move.card, tableCards, setTableCards);
       toast.info("AI discarded a card");
       break;
   }
 
-  // Remove played card from AI's hand
   setAiHand(aiHand.filter(card => 
     card.value !== move.card.value || 
     card.suit !== move.card.suit
   ));
 
   setIsPlayerTurn(true);
+};
+
+const handleAIDiscard = (
+  card: Card,
+  tableCards: Card[],
+  setTableCards: (cards: Card[]) => void
+) => {
+  const x = Math.random() * 400 + 50;
+  const y = Math.random() * 200 + 50;
+  setTableCards([...tableCards, { 
+    ...card, 
+    tableX: x, 
+    tableY: y,
+    playedBy: 'ai' as const,
+    faceUp: true 
+  }]);
+};
+
+type BuildType = {
+  id: number;
+  cards: Card[];
+  value: number;
+  position: { x: number; y: number };
+  owner: 'player' | 'ai' | null;
 };
