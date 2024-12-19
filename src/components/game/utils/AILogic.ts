@@ -1,16 +1,51 @@
 import { Card } from '@/types/game';
 import { toast } from "sonner";
 
+type BuildType = {
+  id: number;
+  cards: Card[];
+  value: number;
+  position: { x: number; y: number };
+  owner: 'player' | 'ai' | null;
+};
+
 // Helper function to check if a card can capture any cards on the table
-const canCaptureCards = (card: Card, tableCards: Card[]): Card[] => {
-  return tableCards.filter(tableCard => tableCard.value === card.value);
+const canCaptureCards = (card: Card, tableCards: Card[], builds: BuildType[]): { cards: Card[], builds: BuildType[] } => {
+  const captureCards: Card[] = [];
+  const captureBuilds: BuildType[] = [];
+
+  // Check for single card captures
+  tableCards.forEach(tableCard => {
+    if (tableCard.value === card.value) {
+      captureCards.push(tableCard);
+    }
+  });
+
+  // Check for build captures
+  builds.forEach(build => {
+    if (build.value === card.value) {
+      captureBuilds.push(build);
+    }
+  });
+
+  return { cards: captureCards, builds: captureBuilds };
 };
 
 // Helper function to find the best move for AI
-const findBestMove = (aiHand: Card[], tableCards: Card[]): { card: Card, captureCards: Card[] } | null => {
+const findBestMove = (
+  aiHand: Card[], 
+  tableCards: Card[], 
+  builds: BuildType[]
+): { 
+  type: 'capture' | 'build' | 'discard',
+  card: Card,
+  captureCards?: Card[],
+  captureBuilds?: BuildType[],
+  buildWith?: Card
+} | null => {
   // Priority 1: Capture valuable cards (Aces, 2 of spades, 10 of diamonds)
   for (const aiCard of aiHand) {
-    const capturableCards = canCaptureCards(aiCard, tableCards);
+    const { cards: capturableCards, builds: capturableBuilds } = canCaptureCards(aiCard, tableCards, builds);
     const hasValuableCapture = capturableCards.some(card => 
       (card.value === 1) || 
       (card.value === 2 && card.suit === 'spades') || 
@@ -18,34 +53,66 @@ const findBestMove = (aiHand: Card[], tableCards: Card[]): { card: Card, capture
     );
     
     if (hasValuableCapture) {
-      return { card: aiCard, captureCards: capturableCards };
+      return { 
+        type: 'capture',
+        card: aiCard,
+        captureCards: capturableCards,
+        captureBuilds: capturableBuilds
+      };
     }
   }
 
   // Priority 2: Capture spades
   for (const aiCard of aiHand) {
-    const capturableCards = canCaptureCards(aiCard, tableCards);
+    const { cards: capturableCards, builds: capturableBuilds } = canCaptureCards(aiCard, tableCards, builds);
     const hasSpadesCapture = capturableCards.some(card => card.suit === 'spades');
     
     if (hasSpadesCapture) {
-      return { card: aiCard, captureCards: capturableCards };
+      return { 
+        type: 'capture',
+        card: aiCard,
+        captureCards: capturableCards,
+        captureBuilds: capturableBuilds
+      };
     }
   }
 
-  // Priority 3: Regular captures
+  // Priority 3: Build if possible
   for (const aiCard of aiHand) {
-    const capturableCards = canCaptureCards(aiCard, tableCards);
-    if (capturableCards.length > 0) {
-      return { card: aiCard, captureCards: capturableCards };
+    for (const tableCard of tableCards) {
+      const sum = aiCard.value + tableCard.value;
+      if (sum <= 10 && aiHand.some(card => card.value === sum)) {
+        return {
+          type: 'build',
+          card: aiCard,
+          buildWith: tableCard
+        };
+      }
     }
   }
 
-  // If no captures possible, play the lowest value card
+  // Priority 4: Regular captures
+  for (const aiCard of aiHand) {
+    const { cards: capturableCards, builds: capturableBuilds } = canCaptureCards(aiCard, tableCards, builds);
+    if (capturableCards.length > 0 || capturableBuilds.length > 0) {
+      return { 
+        type: 'capture',
+        card: aiCard,
+        captureCards: capturableCards,
+        captureBuilds: capturableBuilds
+      };
+    }
+  }
+
+  // If no other moves possible, discard the lowest value card
   if (aiHand.length > 0) {
     const lowestCard = aiHand.reduce((prev, curr) => 
       prev.value <= curr.value ? prev : curr
     );
-    return { card: lowestCard, captureCards: [] };
+    return { 
+      type: 'discard',
+      card: lowestCard
+    };
   }
 
   return null;
@@ -54,11 +121,13 @@ const findBestMove = (aiHand: Card[], tableCards: Card[]): { card: Card, capture
 export const handleAITurn = (
   tableCards: Card[],
   aiHand: Card[],
+  builds: BuildType[],
   setTableCards: (cards: Card[]) => void,
   setAiHand: (cards: Card[]) => void,
+  setBuilds: (builds: BuildType[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void
 ) => {
-  const move = findBestMove(aiHand, tableCards);
+  const move = findBestMove(aiHand, tableCards, builds);
 
   if (!move) {
     toast.error("AI has no valid moves");
@@ -66,28 +135,60 @@ export const handleAITurn = (
     return;
   }
 
-  if (move.captureCards.length > 0) {
-    // Capture cards
-    setTableCards(tableCards.filter(card => 
-      !move.captureCards.some(captureCard => 
-        captureCard.value === card.value && 
-        captureCard.suit === card.suit
-      )
-    ));
-    toast.success("AI captured cards!");
-  } else {
-    // Place card on table
-    const x = Math.random() * 400 + 50;
-    const y = Math.random() * 200 + 50;
-    
-    setTableCards([...tableCards, { 
-      ...move.card, 
-      tableX: x, 
-      tableY: y,
-      playedBy: 'ai' as const,
-      faceUp: true 
-    }]);
-    toast.info("AI placed a card");
+  switch (move.type) {
+    case 'capture':
+      // Remove captured cards from table
+      if (move.captureCards?.length) {
+        setTableCards(tableCards.filter(card => 
+          !move.captureCards?.some(captureCard => 
+            captureCard.value === card.value && 
+            captureCard.suit === card.suit
+          )
+        ));
+      }
+      // Remove captured builds
+      if (move.captureBuilds?.length) {
+        setBuilds(builds.filter(build => 
+          !move.captureBuilds?.some(captureBuild => 
+            captureBuild.id === build.id
+          )
+        ));
+      }
+      toast.success("AI captured cards!");
+      break;
+
+    case 'build':
+      if (move.buildWith) {
+        const x = Math.random() * 400 + 50;
+        const y = Math.random() * 200 + 50;
+        const newBuild: BuildType = {
+          id: Date.now(),
+          cards: [move.card, move.buildWith],
+          value: move.card.value + move.buildWith.value,
+          position: { x, y },
+          owner: 'ai'
+        };
+        setBuilds([...builds, newBuild]);
+        setTableCards(tableCards.filter(card => 
+          card.value !== move.buildWith.value || 
+          card.suit !== move.buildWith.suit
+        ));
+        toast.info("AI created a build!");
+      }
+      break;
+
+    case 'discard':
+      const x = Math.random() * 400 + 50;
+      const y = Math.random() * 200 + 50;
+      setTableCards([...tableCards, { 
+        ...move.card, 
+        tableX: x, 
+        tableY: y,
+        playedBy: 'ai' as const,
+        faceUp: true 
+      }]);
+      toast.info("AI discarded a card");
+      break;
   }
 
   // Remove played card from AI's hand
