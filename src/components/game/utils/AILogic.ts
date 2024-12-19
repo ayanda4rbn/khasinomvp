@@ -204,11 +204,3 @@ const handleAIDiscard = (
     faceUp: true 
   }]);
 };
-
-type BuildType = {
-  id: number;
-  cards: Card[];
-  value: number;
-  position: { x: number; y: number };
-  owner: 'player' | 'ai' | null;
-};
