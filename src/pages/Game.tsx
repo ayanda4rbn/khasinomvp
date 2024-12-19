@@ -19,6 +19,7 @@ const Game = () => {
   const [playerGoesFirst, setPlayerGoesFirst] = useState<boolean | null>(null);
   const [gameDeck, setGameDeck] = useState<Card[]>([]);
   const [playerHand, setPlayerHand] = useState<Card[]>([]);
+  const [aiHand, setAiHand] = useState<Card[]>([]);
   const [tableCards, setTableCards] = useState<Card[]>([]);
 
   useEffect(() => {
@@ -80,11 +81,12 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    // Deal 10 cards to each player for round 1
+    // Deal exactly 10 cards to each player for round 1
     const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, 10);
     const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, 10);
     
     setPlayerHand(playerCards);
+    setAiHand(aiCards); // Set AI's hand explicitly
     setTableCards([]);
     setGameDeck(afterAIDeal); // Store remaining cards for round 2
   };
@@ -105,6 +107,7 @@ const Game = () => {
           playerGoesFirst={playerGoesFirst!}
           tableCards={tableCards}
           playerHand={playerHand}
+          aiHand={aiHand}
           deck={gameDeck}
         />
       )}

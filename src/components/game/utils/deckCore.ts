@@ -1,6 +1,6 @@
 import { Card } from '@/types/game';
 
-// Create a single, immutable standard deck
+// Create a single, immutable standard deck of exactly 40 cards (1-10 for each suit)
 export const STANDARD_DECK: readonly Card[] = Object.freeze(
   ['hearts', 'diamonds', 'clubs', 'spades'].flatMap(suit => 
     Array.from({ length: 10 }, (_, i) => ({

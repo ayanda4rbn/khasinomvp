@@ -65,7 +65,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   }, [playerHand.length, aiHand.length, currentRound]);
 
   const dealNewRound = () => {
-    // Deal remaining cards for round 2
+    // Deal exactly 10 cards to each player for round 2
     const newPlayerHand = deck.slice(0, 10);
     const newAiHand = deck.slice(10, 20);
     const remainingDeck = deck.slice(20);
