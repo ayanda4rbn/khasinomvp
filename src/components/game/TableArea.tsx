@@ -9,6 +9,7 @@ interface TableAreaProps {
   playerName: string;
   playerChowedCards: Card[];
   aiChowedCards: Card[];
+  builds?: BuildType[];
 }
 
 export const TableArea: React.FC<TableAreaProps> = ({
@@ -18,6 +19,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
   playerName,
   playerChowedCards = [], // Default to empty array if undefined
   aiChowedCards = [], // Default to empty array if undefined
+  builds = [], // Default to empty array if undefined
 }) => {
   return (
     <div className="flex items-start w-full max-w-[880px]">
@@ -69,6 +71,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
+        {/* Regular table cards */}
         {tableCards.map((card, index) => (
           <div
             key={`table-${index}`}
@@ -81,6 +84,38 @@ export const TableArea: React.FC<TableAreaProps> = ({
             <CardComponent
               card={{ ...card, faceUp: true }}
             />
+          </div>
+        ))}
+
+        {/* Builds displayed as card stacks with value indicators */}
+        {builds.map((build, buildIndex) => (
+          <div
+            key={`build-${buildIndex}`}
+            className="relative"
+            style={{
+              position: 'absolute',
+              left: build.position.x,
+              top: build.position.y,
+            }}
+          >
+            {/* Stack of cards in the build */}
+            {build.cards.map((card, cardIndex) => (
+              <div
+                key={`build-${buildIndex}-card-${cardIndex}`}
+                className="absolute"
+                style={{
+                  top: `${cardIndex * -2}px`,
+                  left: `${cardIndex * 2}px`,
+                  zIndex: cardIndex,
+                }}
+              >
+                <CardComponent card={{ ...card, faceUp: true }} />
+              </div>
+            ))}
+            {/* Build value indicator */}
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-sm font-bold z-50">
+              {build.value}
+            </div>
           </div>
         ))}
       </div>

@@ -213,6 +213,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           playerName={playerName}
           playerChowedCards={playerChowedCards}
           aiChowedCards={aiChowedCards}
+          builds={builds}
         />
       </div>
 
