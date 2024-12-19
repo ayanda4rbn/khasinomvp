@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/types/game';
+import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
 import { TableArea } from './TableArea';
 import { handleAITurn } from './utils/AILogic';

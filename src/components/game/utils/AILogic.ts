@@ -1,4 +1,4 @@
-import { Card } from '@/types/game';
+import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
 // Helper function to check if a card can capture any cards on the table

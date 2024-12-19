@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/types/game';
+import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
 
 interface TableAreaProps {
@@ -16,8 +16,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
   onDragOver,
   onDrop,
   playerName,
-  playerChowedCards,
-  aiChowedCards,
+  playerChowedCards = [], // Default to empty array if undefined
+  aiChowedCards = [], // Default to empty array if undefined
 }) => {
   return (
     <div className="flex items-start w-full max-w-[880px]">

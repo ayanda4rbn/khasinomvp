@@ -7,3 +7,11 @@ export interface Card {
   tableY?: number;
   playedBy?: 'player' | 'ai';
 }
+
+export interface BuildType {
+  id: number;
+  cards: Card[];
+  value: number;
+  position: { x: number; y: number };
+  owner: 'player' | 'ai' | null;
+}
