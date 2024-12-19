@@ -23,6 +23,7 @@ interface GameBoardProps {
   playerGoesFirst: boolean;
   tableCards: Card[];
   playerHand: Card[];
+  aiHand: Card[];  // Added aiHand to props interface
   deck: Card[];
 }
 
@@ -30,6 +31,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   playerGoesFirst, 
   tableCards: initialTableCards, 
   playerHand: initialPlayerHand,
+  aiHand: initialAiHand,  // Added initialAiHand to destructuring
   deck: initialDeck
 }) => {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const playerName = localStorage.getItem("guestName") || "Player";
   const [tableCards, setTableCards] = useState<Card[]>(initialTableCards);
   const [playerHand, setPlayerHand] = useState<Card[]>(initialPlayerHand);
-  const [aiHand, setAiHand] = useState<Card[]>(initialPlayerHand);
+  const [aiHand, setAiHand] = useState<Card[]>(initialAiHand);  // Updated to use initialAiHand
   const [isPlayerTurn, setIsPlayerTurn] = useState(playerGoesFirst);
   const [currentRound, setCurrentRound] = useState(1);
   const [deck, setDeck] = useState<Card[]>(initialDeck);
@@ -139,7 +141,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div className="flex justify-between items-center text-white mb-2">
         <div className="flex items-center gap-4">
           <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
-            <AlertDialogTrigger>
+            <AlertDialogTrigger asChild>
               <h2 className="text-2xl font-bold cursor-pointer hover:text-casino-gold">
                 Cassino Game
               </h2>
