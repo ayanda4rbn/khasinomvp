@@ -1,77 +1,100 @@
 import { Card } from '@/types/game';
 import { toast } from "sonner";
-import { isCardInArray } from './deckManager';
+
+// Helper function to check if a card can capture any cards on the table
+const canCaptureCards = (card: Card, tableCards: Card[]): Card[] => {
+  return tableCards.filter(tableCard => tableCard.value === card.value);
+};
+
+// Helper function to find the best move for AI
+const findBestMove = (aiHand: Card[], tableCards: Card[]): { card: Card, captureCards: Card[] } | null => {
+  // Priority 1: Capture valuable cards (Aces, 2 of spades, 10 of diamonds)
+  for (const aiCard of aiHand) {
+    const capturableCards = canCaptureCards(aiCard, tableCards);
+    const hasValuableCapture = capturableCards.some(card => 
+      (card.value === 1) || 
+      (card.value === 2 && card.suit === 'spades') || 
+      (card.value === 10 && card.suit === 'diamonds')
+    );
+    
+    if (hasValuableCapture) {
+      return { card: aiCard, captureCards: capturableCards };
+    }
+  }
+
+  // Priority 2: Capture spades
+  for (const aiCard of aiHand) {
+    const capturableCards = canCaptureCards(aiCard, tableCards);
+    const hasSpadesCapture = capturableCards.some(card => card.suit === 'spades');
+    
+    if (hasSpadesCapture) {
+      return { card: aiCard, captureCards: capturableCards };
+    }
+  }
+
+  // Priority 3: Regular captures
+  for (const aiCard of aiHand) {
+    const capturableCards = canCaptureCards(aiCard, tableCards);
+    if (capturableCards.length > 0) {
+      return { card: aiCard, captureCards: capturableCards };
+    }
+  }
+
+  // If no captures possible, play the lowest value card
+  if (aiHand.length > 0) {
+    const lowestCard = aiHand.reduce((prev, curr) => 
+      prev.value <= curr.value ? prev : curr
+    );
+    return { card: lowestCard, captureCards: [] };
+  }
+
+  return null;
+};
 
 export const handleAITurn = (
   tableCards: Card[],
-  playerHand: Card[],
+  aiHand: Card[],
   setTableCards: (cards: Card[]) => void,
-  setPlayerHand: (cards: Card[]) => void,
+  setAiHand: (cards: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void
 ) => {
-  // Filter out cards that are already on the table
-  const availableCards = playerHand.filter(card => !isCardInArray(card, tableCards));
+  const move = findBestMove(aiHand, tableCards);
 
-  if (availableCards.length === 0) {
-    toast.error("AI has no valid cards to play");
+  if (!move) {
+    toast.error("AI has no valid moves");
     setIsPlayerTurn(true);
     return;
   }
 
-  // Select a random card from available cards
-  const aiCardIndex = Math.floor(Math.random() * availableCards.length);
-  const aiCard = availableCards[aiCardIndex];
-
-  // Double-check that this card isn't already on the table
-  if (isCardInArray(aiCard, tableCards)) {
-    console.error('Attempted to play duplicate card:', aiCard);
-    setIsPlayerTurn(true);
-    return;
-  }
-
-  // Find a valid position for the card
-  let x, y;
-  let isValidPosition = false;
-  const maxAttempts = 50;
-  let attempts = 0;
-
-  while (!isValidPosition && attempts < maxAttempts) {
-    x = Math.random() * 400 + 50;
-    y = Math.random() * 200 + 50;
-
-    isValidPosition = !tableCards.some(existingCard => {
-      const existingX = existingCard.tableX || 0;
-      const existingY = existingCard.tableY || 0;
-      return (
-        x < existingX + 48 &&
-        x + 48 > existingX &&
-        y < existingY + 64 &&
-        y + 64 > existingY
-      );
-    });
-
-    attempts++;
-  }
-
-  if (isValidPosition) {
-    const newCard: Card = {
-      ...aiCard,
-      tableX: x,
-      tableY: y,
-      playedBy: 'ai' as const
-    };
-
-    setTableCards([...tableCards, newCard]);
-    
-    const newPlayerHand = playerHand.filter(card => 
-      !(card.value === aiCard.value && card.suit === aiCard.suit)
-    );
-    setPlayerHand(newPlayerHand);
-
-    toast.info("AI discarded a card");
-    setIsPlayerTurn(true);
+  if (move.captureCards.length > 0) {
+    // Capture cards
+    setTableCards(tableCards.filter(card => 
+      !move.captureCards.some(captureCard => 
+        captureCard.value === card.value && 
+        captureCard.suit === card.suit
+      )
+    ));
+    toast.success("AI captured cards!");
   } else {
-    toast.error("AI couldn't find a valid position to place the card");
-    setIsPlayerTurn(true);
+    // Place card on table
+    const x = Math.random() * 400 + 50;
+    const y = Math.random() * 200 + 50;
+    
+    setTableCards([...tableCards, { 
+      ...move.card, 
+      tableX: x, 
+      tableY: y,
+      playedBy: 'ai' as const,
+      faceUp: true 
+    }]);
+    toast.info("AI placed a card");
   }
+
+  // Remove played card from AI's hand
+  setAiHand(aiHand.filter(card => 
+    card.value !== move.card.value || 
+    card.suit !== move.card.suit
+  ));
+
+  setIsPlayerTurn(true);
 };
