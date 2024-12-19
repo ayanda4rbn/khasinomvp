@@ -23,7 +23,7 @@ interface GameBoardProps {
   playerGoesFirst: boolean;
   tableCards: Card[];
   playerHand: Card[];
-  aiHand: Card[];  // Added aiHand to props interface
+  aiHand: Card[];
   deck: Card[];
 }
 
@@ -31,7 +31,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   playerGoesFirst, 
   tableCards: initialTableCards, 
   playerHand: initialPlayerHand,
-  aiHand: initialAiHand,  // Added initialAiHand to destructuring
+  aiHand: initialAiHand,
   deck: initialDeck
 }) => {
   const navigate = useNavigate();
@@ -48,7 +48,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     if (!isPlayerTurn && aiHand.length > 0) {
       const timer = setTimeout(() => {
-        handleAITurn(tableCards, aiHand, setTableCards, setAiHand, setIsPlayerTurn);
+        handleAITurn(
+          tableCards, 
+          aiHand, 
+          [], // Empty builds array as it's not used in current implementation
+          setTableCards, 
+          setAiHand,
+          () => {}, // Empty setBuilds function as it's not used
+          setIsPlayerTurn
+        );
       }, 1000);
       return () => clearTimeout(timer);
     }
