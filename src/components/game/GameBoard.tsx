@@ -86,7 +86,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     setPlayerHand(newPlayerHand);
     setAiHand(newAiHand);
     setDeck(remainingDeck);
-    setIsPlayerTurn(playerGoesFirst); // Keep same first player for round 2
+    setIsPlayerTurn(playerGoesFirst);
     toast.success("Round 2 starting!");
   };
 
@@ -104,24 +104,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const cardIndex = parseInt(e.dataTransfer.getData('text/plain'));
     const card = playerHand[cardIndex];
     
-    // Check if player has the matching card before allowing build
-    const buildValue = card.value;
-    const hasMatchingCard = playerHand.some(c => c.value === buildValue);
-    
-    if (!hasMatchingCard) {
-      toast.error("You must have a matching card to build!");
-      return;
-    }
-    
+    // Get drop coordinates
     const tableRect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
     
-    const cardWidth = 48;
-    const cardHeight = 64;
-    const isOverlapping = tableCards.some(existingCard => {
+    // Check for overlapping cards - only allow if making a build
+    const overlappingCard = tableCards.find(existingCard => {
       const existingX = existingCard.tableX || 0;
       const existingY = existingCard.tableY || 0;
+      const cardWidth = 48;
+      const cardHeight = 64;
+      
       return (
         x < existingX + cardWidth &&
         x + cardWidth > existingX &&
@@ -130,24 +124,49 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       );
     });
 
-    if (isOverlapping) {
-      toast.error("Cannot place card on top of another card!");
-      return;
+    if (overlappingCard) {
+      // Only allow overlapping for builds
+      const buildValue = card.value + overlappingCard.value;
+      if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
+        // Create new build with smaller card on top
+        const buildCards = card.value < overlappingCard.value 
+          ? [card, overlappingCard] 
+          : [overlappingCard, card];
+          
+        const newBuild: BuildType = {
+          id: Date.now(),
+          cards: buildCards,
+          value: buildValue,
+          position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
+          owner: 'player'
+        };
+        
+        setBuilds([...builds, newBuild]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+        
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+      } else {
+        toast.error("Invalid build! You must have a card matching the build value.");
+        return;
+      }
+    } else {
+      // Regular card placement
+      const newCard: Card = {
+        ...card,
+        tableX: x,
+        tableY: y,
+        playedBy: 'player',
+        faceUp: true
+      };
+
+      setTableCards([...tableCards, newCard]);
+      
+      const newPlayerHand = [...playerHand];
+      newPlayerHand.splice(cardIndex, 1);
+      setPlayerHand(newPlayerHand);
     }
-
-    const newCard: Card = {
-      ...card,
-      tableX: x,
-      tableY: y,
-      playedBy: 'player' as const,
-      faceUp: true
-    };
-
-    setTableCards([...tableCards, newCard]);
-    
-    const newPlayerHand = [...playerHand];
-    newPlayerHand.splice(cardIndex, 1);
-    setPlayerHand(newPlayerHand);
 
     setIsPlayerTurn(false);
   };

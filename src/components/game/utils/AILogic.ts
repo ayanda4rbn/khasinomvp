@@ -110,6 +110,39 @@ const findBestMove = (
   return null;
 };
 
+const handleAIBuild = (
+  card: Card,
+  tableCard: Card,
+  aiHand: Card[],
+  tableCards: Card[],
+  builds: BuildType[],
+  setTableCards: (cards: Card[]) => void,
+  setBuilds: (builds: BuildType[]) => void
+): boolean => {
+  const buildValue = card.value + tableCard.value;
+  
+  // Check if AI has the matching card before building
+  if (buildValue <= 10 && aiHand.some(c => c.value === buildValue)) {
+    // Create build with smaller card on top
+    const buildCards = card.value < tableCard.value 
+      ? [card, tableCard] 
+      : [tableCard, card];
+    
+    const newBuild: BuildType = {
+      id: Date.now(),
+      cards: buildCards,
+      value: buildValue,
+      position: { x: tableCard.tableX || 0, y: tableCard.tableY || 0 },
+      owner: 'ai'
+    };
+    
+    setBuilds([...builds, newBuild]);
+    setTableCards(tableCards.filter(c => c !== tableCard));
+    return true;
+  }
+  return false;
+};
+
 export const handleAITurn = (
   tableCards: Card[],
   aiHand: Card[],
