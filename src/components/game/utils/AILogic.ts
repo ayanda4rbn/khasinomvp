@@ -12,7 +12,7 @@ export const handleAITurn = (
   setAiHand: (cards: Card[]) => void,
   setBuilds: (builds: BuildType[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
-  setAiChowedCards: (cards: Card[]) => void
+  setAiChowedCards: React.Dispatch<React.SetStateAction<Card[]>>
 ) => {
   const move = findBestMove(aiHand, tableCards, builds);
 
