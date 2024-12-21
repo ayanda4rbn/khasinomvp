@@ -106,12 +106,25 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       );
     });
 
+    // Check if there's an existing build and we're in round 1
+    const hasExistingBuild = builds.length > 0;
+    if (currentRound === 1 && hasExistingBuild && !overlappingCard) {
+      toast.error("You must capture or continue building when you have an existing build!");
+      return;
+    }
+
     if (overlappingCard) {
+      // If there's already a build and we're trying to create a new one
+      if (hasExistingBuild && !builds.some(b => b.cards.includes(overlappingCard))) {
+        toast.error("You cannot create multiple builds at the same time!");
+        return;
+      }
+
       const buildValue = card.value + overlappingCard.value;
       if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
         // Ensure smaller card is on top
         const buildCards = card.value < overlappingCard.value 
-          ? [card, overlappingCard] 
+          ? [overlappingCard, card] 
           : [overlappingCard, card];
           
         const newBuild: BuildType = {
@@ -140,6 +153,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         return;
       }
     } else {
+      // Only allow discarding if there are no builds in round 1
+      if (currentRound === 1 && hasExistingBuild) {
+        toast.error("You cannot discard when you have an existing build in round 1!");
+        return;
+      }
+
       const newCard: Card = {
         ...card,
         tableX: x,

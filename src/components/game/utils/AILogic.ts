@@ -49,6 +49,13 @@ export const handleAITurn = (
       if (move.buildWith) {
         const buildValue = move.card.value + move.buildWith.value;
         if (aiHand.some(card => card.value === buildValue)) {
+          // Don't create a new build if one already exists
+          if (builds.length > 0 && !builds.some(b => b.cards.includes(move.buildWith!))) {
+            handleAIDiscard(move.card, tableCards, setTableCards);
+            toast.info("AI couldn't create multiple builds, discarded instead");
+            break;
+          }
+
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
@@ -77,6 +84,28 @@ export const handleAITurn = (
       break;
 
     case 'discard':
+      // Don't allow discarding if there's a build in round 1
+      if (builds.length > 0) {
+        // Try to find a capture or build move instead
+        const alternativeMove = findBestMove(
+          aiHand.filter(card => card !== move.card),
+          tableCards,
+          builds
+        );
+        if (alternativeMove && alternativeMove.type !== 'discard') {
+          handleAITurn(
+            tableCards,
+            aiHand.filter(card => card !== move.card),
+            builds,
+            setTableCards,
+            setAiHand,
+            setBuilds,
+            setIsPlayerTurn,
+            setAiChowedCards
+          );
+          return;
+        }
+      }
       handleAIDiscard(move.card, tableCards, setTableCards);
       toast.info("AI discarded a card");
       break;
