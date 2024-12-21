@@ -11,7 +11,8 @@ export const handleAITurn = (
   setTableCards: (cards: Card[]) => void,
   setAiHand: (cards: Card[]) => void,
   setBuilds: (builds: BuildType[]) => void,
-  setIsPlayerTurn: (isPlayerTurn: boolean) => void
+  setIsPlayerTurn: (isPlayerTurn: boolean) => void,
+  setAiChowedCards: (cards: Card[]) => void
 ) => {
   const move = findBestMove(aiHand, tableCards, builds);
 
@@ -24,19 +25,25 @@ export const handleAITurn = (
   switch (move.type) {
     case 'capture':
       if (move.captureCards?.length) {
+        // Remove captured cards from table
         setTableCards(tableCards.filter(card => 
           !move.captureCards?.some(captureCard => 
             captureCard.value === card.value && 
             captureCard.suit === card.suit
           )
         ));
+        // Add captured cards to AI's chowed pile
+        setAiChowedCards(prev => [...prev, ...(move.captureCards || [])]);
       }
       if (move.captureBuilds?.length) {
+        const capturedBuildCards = move.captureBuilds.flatMap(build => build.cards);
         setBuilds(builds.filter(build => 
           !move.captureBuilds?.some(captureBuild => 
             captureBuild.id === build.id
           )
         ));
+        // Add captured build cards to AI's chowed pile
+        setAiChowedCards(prev => [...prev, ...capturedBuildCards]);
       }
       toast.success("AI captured cards!");
       break;
@@ -47,9 +54,13 @@ export const handleAITurn = (
         if (aiHand.some(card => card.value === buildValue)) {
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
+          // Ensure smaller card is on top
+          const buildCards = move.card.value < move.buildWith.value
+            ? [move.card, move.buildWith]
+            : [move.buildWith, move.card];
           const newBuild: BuildType = {
             id: Date.now(),
-            cards: [move.card, move.buildWith],
+            cards: buildCards,
             value: buildValue,
             position: { x, y },
             owner: 'ai'

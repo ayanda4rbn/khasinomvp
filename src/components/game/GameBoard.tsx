@@ -44,7 +44,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           setTableCards, 
           setAiHand,
           setBuilds,
-          setIsPlayerTurn
+          setIsPlayerTurn,
+          setAiChowedCards
         );
       }, 1000);
       return () => clearTimeout(timer);
@@ -108,6 +109,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     if (overlappingCard) {
       const buildValue = card.value + overlappingCard.value;
       if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
+        // Ensure smaller card is on top
         const buildCards = card.value < overlappingCard.value 
           ? [card, overlappingCard] 
           : [overlappingCard, card];
@@ -126,6 +128,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         const newPlayerHand = [...playerHand];
         newPlayerHand.splice(cardIndex, 1);
         setPlayerHand(newPlayerHand);
+
+        // Check if we can capture the build
+        if (card.value === buildValue) {
+          setPlayerChowedCards(prev => [...prev, ...buildCards]);
+          setBuilds(builds => builds.filter(b => b.id !== newBuild.id));
+          toast.success("Build captured!");
+        }
       } else {
         toast.error("Invalid build! You must have a card matching the build value.");
         return;
