@@ -31,7 +31,9 @@ export const handleAITurn = (
             captureCard.suit === card.suit
           )
         ));
-        setAiChowedCards(prev => [...prev, ...(move.captureCards || [])]);
+        // Sort captured cards by value and add capturing card last (on top)
+        const sortedCaptureCards = [...(move.captureCards || [])].sort((a, b) => a.value - b.value);
+        setAiChowedCards(prev => [...prev, ...sortedCaptureCards]);
       }
       if (move.captureBuilds?.length) {
         const capturedBuildCards = move.captureBuilds.flatMap(build => build.cards);
@@ -40,7 +42,9 @@ export const handleAITurn = (
             captureBuild.id === build.id
           )
         ));
-        setAiChowedCards(prev => [...prev, ...capturedBuildCards]);
+        // Sort build cards by value and add capturing card last (on top)
+        const sortedBuildCards = [...capturedBuildCards].sort((a, b) => a.value - b.value);
+        setAiChowedCards(prev => [...prev, ...sortedBuildCards, move.card]);
       }
       toast.success("AI captured cards!");
       break;
@@ -59,10 +63,8 @@ export const handleAITurn = (
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
-          // Ensure smaller card is on top by comparing values
-          const buildCards = move.card.value < move.buildWith.value
-            ? [move.buildWith, move.card]  // Smaller card (move.card) will be on top
-            : [move.card, move.buildWith]; // Smaller card (move.buildWith) will be on top
+          // Sort cards by value to ensure smaller card is on top
+          const buildCards = [move.buildWith, move.card].sort((a, b) => b.value - a.value);
             
           const newBuild: BuildType = {
             id: Date.now(),

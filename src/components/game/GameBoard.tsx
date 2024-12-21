@@ -122,11 +122,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       const buildValue = card.value + overlappingCard.value;
       if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-        // Ensure smaller card is on top
-        const buildCards = card.value < overlappingCard.value 
-          ? [overlappingCard, card] 
-          : [overlappingCard, card];
-          
+        // Sort cards by value to ensure smaller card is on top
+        const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value);
+        
         const newBuild: BuildType = {
           id: Date.now(),
           cards: buildCards,
@@ -144,7 +142,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
         // Check if we can capture the build
         if (card.value === buildValue) {
-          setPlayerChowedCards(prev => [...prev, ...buildCards]);
+          // When capturing, add the capturing card last (on top)
+          const captureCards = [...buildCards.sort((a, b) => a.value - b.value), card];
+          setPlayerChowedCards(prev => [...prev, ...captureCards]);
           setBuilds(builds => builds.filter(b => b.id !== newBuild.id));
           toast.success("Build captured!");
         }
