@@ -20,14 +20,14 @@ export const handleBuildCapture = (
   build: BuildType,
   playerHand: Card[],
   cardIndex: number,
-  setPlayerChowedCards: (cards: Card[]) => void,
+  setPlayerChowedCards: React.Dispatch<React.SetStateAction<Card[]>>,
   setBuilds: (builds: BuildType[]) => void,
   setPlayerHand: (hand: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ) => {
   const sortedBuildCards = [...build.cards].sort((a, b) => a.value - b.value);
-  setPlayerChowedCards(prev => [...prev, ...sortedBuildCards, card]);
+  setPlayerChowedCards(prevCards => [...prevCards, ...sortedBuildCards, card]);
   setBuilds(builds.filter(b => b.id !== build.id));
   const newPlayerHand = [...playerHand];
   newPlayerHand.splice(cardIndex, 1);
