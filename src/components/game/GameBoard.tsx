@@ -93,6 +93,22 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
     
+    // Find if we're dropping on a build
+    const overlappingBuild = builds.find(build => {
+      const buildX = build.position.x;
+      const buildY = build.position.y;
+      const cardWidth = 48;
+      const cardHeight = 64;
+      
+      return (
+        x < buildX + cardWidth &&
+        x + cardWidth > buildX &&
+        y < buildY + cardHeight &&
+        y + cardHeight > buildY
+      );
+    });
+
+    // Find if we're dropping on a loose card
     const overlappingCard = tableCards.find(existingCard => {
       const existingX = existingCard.tableX || 0;
       const existingY = existingCard.tableY || 0;
@@ -109,14 +125,50 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
     // Check if there's a player-owned build in round 1
     const hasPlayerBuild = builds.some(build => build.owner === 'player');
-    if (currentRound === 1 && hasPlayerBuild && !overlappingCard) {
-      toast.error("You must capture or continue building when you have an existing build!");
-      return;
+    
+    if (overlappingBuild) {
+      // If the card value equals the build value, capture the build
+      if (card.value === overlappingBuild.value) {
+        // Sort build cards by value and add capturing card last (on top)
+        const sortedBuildCards = [...overlappingBuild.cards].sort((a, b) => a.value - b.value);
+        setPlayerChowedCards(prev => [...prev, ...sortedBuildCards, card]);
+        setBuilds(builds.filter(b => b.id !== overlappingBuild.id));
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+        setIsPlayerTurn(false);
+        toast.success("Build captured!");
+        return;
+      }
+
+      // Check if we can augment the build
+      const newBuildValue = overlappingBuild.value + card.value;
+      if (newBuildValue <= 10 && newBuildValue < overlappingBuild.value * 2 && playerHand.some(c => c.value === newBuildValue)) {
+        // Only allow augmenting opponent's build if we don't have our own
+        if (overlappingBuild.owner === 'ai' && hasPlayerBuild) {
+          toast.error("You cannot augment when you have an existing build!");
+          return;
+        }
+
+        const updatedBuild: BuildType = {
+          ...overlappingBuild,
+          cards: [...overlappingBuild.cards, card],
+          value: newBuildValue,
+          owner: 'player'  // Take ownership when augmenting
+        };
+        setBuilds(builds.map(b => b.id === overlappingBuild.id ? updatedBuild : b));
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+        setIsPlayerTurn(false);
+        toast.success("Build augmented!");
+        return;
+      }
     }
 
     if (overlappingCard) {
       // If there's already a player build and we're trying to create a new one
-      if (hasPlayerBuild && !builds.some(b => b.cards.includes(overlappingCard))) {
+      if (hasPlayerBuild) {
         toast.error("You cannot create multiple builds at the same time!");
         return;
       }
@@ -140,15 +192,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         const newPlayerHand = [...playerHand];
         newPlayerHand.splice(cardIndex, 1);
         setPlayerHand(newPlayerHand);
-
-        // Check if we can capture the build
-        if (card.value === buildValue) {
-          // When capturing, add the capturing card last (on top)
-          const captureCards = [...buildCards.sort((a, b) => a.value - b.value), card];
-          setPlayerChowedCards(prev => [...prev, ...captureCards]);
-          setBuilds(builds => builds.filter(b => b.id !== newBuild.id));
-          toast.success("Build captured!");
-        }
       } else {
         toast.error("Invalid build! You must have a card matching the build value.");
         return;

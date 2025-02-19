@@ -37,7 +37,7 @@ export const handleAITurn = (
         ));
         // Sort captured cards by value and add capturing card last (on top)
         const sortedCaptureCards = [...(move.captureCards || [])].sort((a, b) => a.value - b.value);
-        setAiChowedCards(prev => [...prev, ...sortedCaptureCards]);
+        setAiChowedCards(prev => [...prev, ...sortedCaptureCards, move.card]);
       }
       if (move.captureBuilds?.length) {
         const capturedBuildCards = move.captureBuilds.flatMap(build => build.cards);
@@ -49,12 +49,12 @@ export const handleAITurn = (
         // Sort build cards by value and add capturing card last (on top)
         const sortedBuildCards = [...capturedBuildCards].sort((a, b) => a.value - b.value);
         setAiChowedCards(prev => [...prev, ...sortedBuildCards, move.card]);
+        toast.success("AI captured a build!");
       }
-      toast.success("AI captured cards!");
       break;
 
     case 'build':
-      if (move.buildWith) {
+      if (move.buildWith && !hasAIBuild) {
         const buildValue = move.card.value + move.buildWith.value;
         if (aiHand.some(card => card.value === buildValue)) {
           const x = Math.random() * 400 + 50;
@@ -76,39 +76,26 @@ export const handleAITurn = (
             card.suit !== move.buildWith.suit
           ));
           toast.info("AI created a build!");
-        } else {
-          // Only allow discarding if AI doesn't have builds in round 1
-          if (hasAIBuild) {
-            // Try to find another move that isn't discarding
-            const alternativeMove = findBestMove(
-              aiHand.filter(card => card !== move.card),
-              tableCards,
-              builds
-            );
-            if (alternativeMove && alternativeMove.type !== 'discard') {
-              handleAITurn(
-                tableCards,
-                aiHand.filter(card => card !== move.card),
-                builds,
-                setTableCards,
-                setAiHand,
-                setBuilds,
-                setIsPlayerTurn,
-                setAiChowedCards
-              );
-              return;
-            }
-            toast.error("AI cannot discard with an existing build!");
-            setIsPlayerTurn(true);
-            return;
-          }
-          handleAIDiscard(move.card, tableCards, setTableCards);
+        }
+      }
+      break;
+
+    case 'augment':
+      if (move.augmentBuild && !hasAIBuild) {
+        const newBuildValue = move.augmentBuild.value + move.card.value;
+        if (newBuildValue <= 10 && newBuildValue < move.augmentBuild.value * 2 && aiHand.some(card => card.value === newBuildValue)) {
+          const updatedBuild: BuildType = {
+            ...move.augmentBuild,
+            cards: [...move.augmentBuild.cards, move.card],
+            value: newBuildValue
+          };
+          setBuilds(builds.map(b => b.id === move.augmentBuild?.id ? updatedBuild : b));
+          toast.info("AI augmented a build!");
         }
       }
       break;
 
     case 'discard':
-      // Don't allow discarding if there's an AI build
       if (hasAIBuild) {
         toast.error("AI cannot discard with an existing build!");
         setIsPlayerTurn(true);
