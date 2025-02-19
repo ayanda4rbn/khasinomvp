@@ -1,12 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, BuildType } from '@/types/game';
+import React, { useEffect } from 'react';
+import { Card } from '@/types/game';
 import { TableArea } from './TableArea';
 import { handleAITurn } from './utils/AILogic';
 import { toast } from "sonner";
 import { GameHeader } from './GameHeader';
 import { PlayerHand } from './PlayerHand';
 import { AIHand } from './AIHand';
+import { useGameState } from './hooks/useGameState';
+import { handleDragStart, handleBuildCapture, handleBuildAugment, handleNewBuild } from './handlers/dragDropHandlers';
 
 interface GameBoardProps {
   playerGoesFirst: boolean;
@@ -23,78 +25,53 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   aiHand: initialAiHand,
   deck: initialDeck
 }) => {
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const playerName = localStorage.getItem("guestName") || "Player";
-  const [tableCards, setTableCards] = useState<Card[]>(initialTableCards);
-  const [playerHand, setPlayerHand] = useState<Card[]>(initialPlayerHand);
-  const [aiHand, setAiHand] = useState<Card[]>(initialAiHand);
-  const [isPlayerTurn, setIsPlayerTurn] = useState(playerGoesFirst);
-  const [currentRound, setCurrentRound] = useState(1);
-  const [deck, setDeck] = useState<Card[]>(initialDeck);
-  const [builds, setBuilds] = useState<BuildType[]>([]);
-  const [playerChowedCards, setPlayerChowedCards] = useState<Card[]>([]);
-  const [aiChowedCards, setAiChowedCards] = useState<Card[]>([]);
+  const gameState = useGameState(
+    playerGoesFirst,
+    initialTableCards,
+    initialPlayerHand,
+    initialAiHand,
+    initialDeck
+  );
 
   useEffect(() => {
-    if (!isPlayerTurn && aiHand.length > 0) {
+    if (!gameState.isPlayerTurn && gameState.aiHand.length > 0) {
       const timer = setTimeout(() => {
         handleAITurn(
-          tableCards, 
-          aiHand, 
-          builds,
-          setTableCards, 
-          setAiHand,
-          setBuilds,
-          setIsPlayerTurn,
-          setAiChowedCards
+          gameState.tableCards,
+          gameState.aiHand,
+          gameState.builds,
+          gameState.setTableCards,
+          gameState.setAiHand,
+          gameState.setBuilds,
+          gameState.setIsPlayerTurn,
+          gameState.setAiChowedCards
         );
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isPlayerTurn, tableCards, aiHand, builds]);
+  }, [gameState.isPlayerTurn, gameState.tableCards, gameState.aiHand, gameState.builds]);
 
   useEffect(() => {
-    if (playerHand.length === 0 && aiHand.length === 0 && currentRound === 1) {
+    if (gameState.playerHand.length === 0 && gameState.aiHand.length === 0 && gameState.currentRound === 1) {
       const timer = setTimeout(() => {
-        setCurrentRound(2);
-        dealNewRound();
+        gameState.setCurrentRound(2);
+        gameState.dealNewRound();
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [playerHand.length, aiHand.length, currentRound]);
-
-  const dealNewRound = () => {
-    const newPlayerHand = deck.slice(0, 10);
-    const newAiHand = deck.slice(10, 20);
-    const remainingDeck = deck.slice(20);
-
-    setPlayerHand(newPlayerHand);
-    setAiHand(newAiHand);
-    setDeck(remainingDeck);
-    setIsPlayerTurn(playerGoesFirst);
-    toast.success("Round 2 starting!");
-  };
-
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, cardIndex: number) => {
-    if (!isPlayerTurn) {
-      e.preventDefault();
-      toast.error("It's not your turn!");
-      return;
-    }
-    e.dataTransfer.setData('text/plain', cardIndex.toString());
-  };
+  }, [gameState.playerHand.length, gameState.aiHand.length, gameState.currentRound]);
 
   const handleTableDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const cardIndex = parseInt(e.dataTransfer.getData('text/plain'));
-    const card = playerHand[cardIndex];
+    const card = gameState.playerHand[cardIndex];
     
     const tableRect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
     
     // Find if we're dropping on a build
-    const overlappingBuild = builds.find(build => {
+    const overlappingBuild = gameState.builds.find(build => {
       const buildX = build.position.x;
       const buildY = build.position.y;
       const cardWidth = 48;
@@ -109,7 +86,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     });
 
     // Find if we're dropping on a loose card
-    const overlappingCard = tableCards.find(existingCard => {
+    const overlappingCard = gameState.tableCards.find(existingCard => {
       const existingX = existingCard.tableX || 0;
       const existingY = existingCard.tableY || 0;
       const cardWidth = 48;
@@ -123,82 +100,61 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       );
     });
 
-    // Check if there's a player-owned build in round 1
-    const hasPlayerBuild = builds.some(build => build.owner === 'player');
+    const hasPlayerBuild = gameState.builds.some(build => build.owner === 'player');
     
     if (overlappingBuild) {
-      // If the card value equals the build value, capture the build
+      // Capture build if card value matches build value
       if (card.value === overlappingBuild.value) {
-        // Sort build cards by value and add capturing card last (on top)
-        const sortedBuildCards = [...overlappingBuild.cards].sort((a, b) => a.value - b.value);
-        setPlayerChowedCards(prev => [...prev, ...sortedBuildCards, card]);
-        setBuilds(builds.filter(b => b.id !== overlappingBuild.id));
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-        setIsPlayerTurn(false);
-        toast.success("Build captured!");
+        handleBuildCapture(
+          card,
+          overlappingBuild,
+          gameState.playerHand,
+          cardIndex,
+          gameState.setPlayerChowedCards,
+          gameState.setBuilds,
+          gameState.setPlayerHand,
+          gameState.setIsPlayerTurn,
+          gameState.builds
+        );
         return;
       }
 
-      // Check if we can augment the build
-      const newBuildValue = overlappingBuild.value + card.value;
-      if (newBuildValue <= 10 && newBuildValue < overlappingBuild.value * 2 && playerHand.some(c => c.value === newBuildValue)) {
-        // Only allow augmenting opponent's build if we don't have our own
-        if (overlappingBuild.owner === 'ai' && hasPlayerBuild) {
-          toast.error("You cannot augment when you have an existing build!");
-          return;
-        }
-
-        const updatedBuild: BuildType = {
-          ...overlappingBuild,
-          cards: [...overlappingBuild.cards, card],
-          value: newBuildValue,
-          owner: 'player'  // Take ownership when augmenting
-        };
-        setBuilds(builds.map(b => b.id === overlappingBuild.id ? updatedBuild : b));
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-        setIsPlayerTurn(false);
-        toast.success("Build augmented!");
+      // Try to augment build
+      if (handleBuildAugment(
+        card,
+        overlappingBuild,
+        gameState.playerHand,
+        cardIndex,
+        hasPlayerBuild,
+        gameState.setBuilds,
+        gameState.setPlayerHand,
+        gameState.setIsPlayerTurn,
+        gameState.builds
+      )) {
         return;
       }
     }
 
     if (overlappingCard) {
-      // If there's already a player build and we're trying to create a new one
-      if (hasPlayerBuild) {
-        toast.error("You cannot create multiple builds at the same time!");
-        return;
-      }
-
-      const buildValue = card.value + overlappingCard.value;
-      if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-        // Sort cards by value to ensure smaller card is on top
-        const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value);
-        
-        const newBuild: BuildType = {
-          id: Date.now(),
-          cards: buildCards,
-          value: buildValue,
-          position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
-          owner: 'player'
-        };
-        
-        setBuilds([...builds, newBuild]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-      } else {
-        toast.error("Invalid build! You must have a card matching the build value.");
+      // Try to create new build
+      if (handleNewBuild(
+        card,
+        overlappingCard,
+        gameState.playerHand,
+        cardIndex,
+        hasPlayerBuild,
+        gameState.setBuilds,
+        gameState.setTableCards,
+        gameState.setPlayerHand,
+        gameState.tableCards,
+        gameState.builds
+      )) {
+        gameState.setIsPlayerTurn(false);
         return;
       }
     } else {
-      // Only prevent discarding if there's a player-owned build in round 1
-      if (currentRound === 1 && hasPlayerBuild) {
+      // Handle discarding
+      if (gameState.currentRound === 1 && hasPlayerBuild) {
         toast.error("You cannot discard when you have an existing build in round 1!");
         return;
       }
@@ -211,43 +167,41 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         faceUp: true
       };
 
-      setTableCards([...tableCards, newCard]);
-      
-      const newPlayerHand = [...playerHand];
+      gameState.setTableCards([...gameState.tableCards, newCard]);
+      const newPlayerHand = [...gameState.playerHand];
       newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
+      gameState.setPlayerHand(newPlayerHand);
+      gameState.setIsPlayerTurn(false);
     }
-
-    setIsPlayerTurn(false);
   };
 
   return (
     <div className="h-screen bg-casino-green p-4 flex flex-col">
       <GameHeader 
-        showLeaveDialog={showLeaveDialog}
-        setShowLeaveDialog={setShowLeaveDialog}
-        currentRound={currentRound}
+        showLeaveDialog={gameState.showLeaveDialog}
+        setShowLeaveDialog={gameState.setShowLeaveDialog}
+        currentRound={gameState.currentRound}
       />
       
-      <AIHand cards={aiHand} />
+      <AIHand cards={gameState.aiHand} />
 
       <div className="flex-grow flex items-center justify-center mb-1">
         <TableArea
-          tableCards={tableCards}
+          tableCards={gameState.tableCards}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleTableDrop}
-          playerName={playerName}
-          playerChowedCards={playerChowedCards}
-          aiChowedCards={aiChowedCards}
-          builds={builds}
+          playerName={gameState.playerName}
+          playerChowedCards={gameState.playerChowedCards}
+          aiChowedCards={gameState.aiChowedCards}
+          builds={gameState.builds}
         />
       </div>
 
       <PlayerHand 
-        playerName={playerName}
-        cards={playerHand}
-        isPlayerTurn={isPlayerTurn}
-        onDragStart={handleDragStart}
+        playerName={gameState.playerName}
+        cards={gameState.playerHand}
+        isPlayerTurn={gameState.isPlayerTurn}
+        onDragStart={(e, index) => handleDragStart(e, index, gameState.isPlayerTurn)}
       />
     </div>
   );
