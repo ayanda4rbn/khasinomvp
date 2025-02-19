@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 import { findBestMove } from './aiStrategyLogic';
@@ -21,6 +22,9 @@ export const handleAITurn = (
     setIsPlayerTurn(true);
     return;
   }
+
+  // Check if AI has a build on the table
+  const hasAIBuild = builds.some(build => build.owner === 'ai');
 
   switch (move.type) {
     case 'capture':
@@ -53,13 +57,6 @@ export const handleAITurn = (
       if (move.buildWith) {
         const buildValue = move.card.value + move.buildWith.value;
         if (aiHand.some(card => card.value === buildValue)) {
-          // Don't create a new build if one already exists
-          if (builds.length > 0 && !builds.some(b => b.cards.includes(move.buildWith!))) {
-            handleAIDiscard(move.card, tableCards, setTableCards);
-            toast.info("AI couldn't create multiple builds, discarded instead");
-            break;
-          }
-
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
@@ -80,33 +77,42 @@ export const handleAITurn = (
           ));
           toast.info("AI created a build!");
         } else {
+          // Only allow discarding if AI doesn't have builds in round 1
+          if (hasAIBuild) {
+            // Try to find another move that isn't discarding
+            const alternativeMove = findBestMove(
+              aiHand.filter(card => card !== move.card),
+              tableCards,
+              builds
+            );
+            if (alternativeMove && alternativeMove.type !== 'discard') {
+              handleAITurn(
+                tableCards,
+                aiHand.filter(card => card !== move.card),
+                builds,
+                setTableCards,
+                setAiHand,
+                setBuilds,
+                setIsPlayerTurn,
+                setAiChowedCards
+              );
+              return;
+            }
+            toast.error("AI cannot discard with an existing build!");
+            setIsPlayerTurn(true);
+            return;
+          }
           handleAIDiscard(move.card, tableCards, setTableCards);
         }
       }
       break;
 
     case 'discard':
-      // Don't allow discarding if there's a build in round 1
-      if (builds.length > 0) {
-        // Try to find a capture or build move instead
-        const alternativeMove = findBestMove(
-          aiHand.filter(card => card !== move.card),
-          tableCards,
-          builds
-        );
-        if (alternativeMove && alternativeMove.type !== 'discard') {
-          handleAITurn(
-            tableCards,
-            aiHand.filter(card => card !== move.card),
-            builds,
-            setTableCards,
-            setAiHand,
-            setBuilds,
-            setIsPlayerTurn,
-            setAiChowedCards
-          );
-          return;
-        }
+      // Don't allow discarding if there's an AI build
+      if (hasAIBuild) {
+        toast.error("AI cannot discard with an existing build!");
+        setIsPlayerTurn(true);
+        return;
       }
       handleAIDiscard(move.card, tableCards, setTableCards);
       toast.info("AI discarded a card");
