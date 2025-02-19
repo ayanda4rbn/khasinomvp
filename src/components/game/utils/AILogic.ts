@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 import { findBestMove } from './aiStrategyLogic';
@@ -35,7 +34,7 @@ export const handleAITurn = (
             captureCard.suit === card.suit
           )
         ));
-        // Sort captured cards by value and add capturing card last (on top)
+        // Sort captured cards by value (ascending) and add capturing card last
         const sortedCaptureCards = [...(move.captureCards || [])].sort((a, b) => a.value - b.value);
         setAiChowedCards(prev => [...prev, ...sortedCaptureCards, move.card]);
       }
@@ -46,9 +45,8 @@ export const handleAITurn = (
             captureBuild.id === build.id
           )
         ));
-        // Sort build cards by value and add capturing card last (on top)
-        const sortedBuildCards = [...capturedBuildCards].sort((a, b) => a.value - b.value);
-        setAiChowedCards(prev => [...prev, ...sortedBuildCards, move.card]);
+        // Keep build cards in their original order and add capturing card last
+        setAiChowedCards(prev => [...prev, ...capturedBuildCards, move.card]);
         toast.success("AI captured a build!");
       }
       break;
@@ -60,7 +58,7 @@ export const handleAITurn = (
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
-          // Sort cards by value to ensure smaller card is on top
+          // Sort cards by value (higher values first)
           const buildCards = [move.buildWith, move.card].sort((a, b) => b.value - a.value);
             
           const newBuild: BuildType = {
@@ -84,9 +82,11 @@ export const handleAITurn = (
       if (move.augmentBuild && !hasAIBuild) {
         const newBuildValue = move.augmentBuild.value + move.card.value;
         if (newBuildValue <= 10 && newBuildValue < move.augmentBuild.value * 2 && aiHand.some(card => card.value === newBuildValue)) {
+          // Keep existing build cards order and add new card in correct position
+          const allCards = [...move.augmentBuild.cards, move.card].sort((a, b) => b.value - a.value);
           const updatedBuild: BuildType = {
             ...move.augmentBuild,
-            cards: [...move.augmentBuild.cards, move.card],
+            cards: allCards,
             value: newBuildValue
           };
           setBuilds(builds.map(b => b.id === move.augmentBuild?.id ? updatedBuild : b));

@@ -54,9 +54,10 @@ export const handleBuildAugment = (
       return false;
     }
 
+    // Sort and maintain existing build cards order
     const updatedBuild: BuildType = {
       ...build,
-      cards: [...build.cards, card],
+      cards: [...build.cards, card].sort((a, b) => b.value - a.value),
       value: newBuildValue,
       owner: 'player'
     };
@@ -90,6 +91,7 @@ export const handleNewBuild = (
 
   const buildValue = card.value + overlappingCard.value;
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
+    // Sort cards by value (higher values first)
     const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value);
     
     const newBuild: BuildType = {
@@ -110,4 +112,81 @@ export const handleNewBuild = (
   }
   toast.error("Invalid build! You must have a card matching the build value.");
   return false;
+};
+
+export const calculateScore = (
+  playerChowedCards: Card[],
+  aiChowedCards: Card[]
+) => {
+  let playerScore = 0;
+  let aiScore = 0;
+
+  // Points for most cards
+  if (playerChowedCards.length > aiChowedCards.length) {
+    playerScore += 2;
+  } else if (aiChowedCards.length > playerChowedCards.length) {
+    aiScore += 2;
+  } else {
+    playerScore += 1;
+    aiScore += 1;
+  }
+
+  // Count spades for each player
+  const playerSpades = playerChowedCards.filter(card => card.suit === 'spades').length;
+  const aiSpades = aiChowedCards.filter(card => card.suit === 'spades').length;
+
+  // Points for most spades
+  if (playerSpades > aiSpades) {
+    playerScore += 2;
+  } else if (aiSpades > playerSpades) {
+    aiScore += 2;
+  } else {
+    playerScore += 1;
+    aiScore += 1;
+  }
+
+  // Two of spades (spy two)
+  if (playerChowedCards.some(card => card.suit === 'spades' && card.value === 2)) {
+    playerScore += 1;
+  } else if (aiChowedCards.some(card => card.suit === 'spades' && card.value === 2)) {
+    aiScore += 1;
+  }
+
+  // Ten of diamonds (mummy)
+  if (playerChowedCards.some(card => card.suit === 'diamonds' && card.value === 10)) {
+    playerScore += 2;
+  } else if (aiChowedCards.some(card => card.suit === 'diamonds' && card.value === 10)) {
+    aiScore += 2;
+  }
+
+  // Aces (1 point each)
+  playerScore += playerChowedCards.filter(card => card.value === 1).length;
+  aiScore += aiChowedCards.filter(card => card.value === 1).length;
+
+  return {
+    playerScore,
+    aiScore,
+    details: {
+      mostCards: {
+        player: playerChowedCards.length,
+        ai: aiChowedCards.length
+      },
+      mostSpades: {
+        player: playerSpades,
+        ai: aiSpades
+      },
+      spyTwo: {
+        player: playerChowedCards.some(card => card.suit === 'spades' && card.value === 2),
+        ai: aiChowedCards.some(card => card.suit === 'spades' && card.value === 2)
+      },
+      mummy: {
+        player: playerChowedCards.some(card => card.suit === 'diamonds' && card.value === 10),
+        ai: aiChowedCards.some(card => card.suit === 'diamonds' && card.value === 10)
+      },
+      aces: {
+        player: playerChowedCards.filter(card => card.value === 1).length,
+        ai: aiChowedCards.filter(card => card.value === 1).length
+      }
+    }
+  };
 };
