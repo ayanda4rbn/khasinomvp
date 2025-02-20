@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/types/game";
@@ -22,6 +21,7 @@ const Game = () => {
   const [playerHand, setPlayerHand] = useState<Card[]>([]);
   const [aiHand, setAiHand] = useState<Card[]>([]);
   const [tableCards, setTableCards] = useState<Card[]>([]);
+  const [currentRound, setCurrentRound] = useState<1 | 2>(1);
 
   useEffect(() => {
     const guestName = localStorage.getItem("guestName");
@@ -77,10 +77,9 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    // Ensure equal number of cards for both players
-    const cardsPerPlayer = Math.floor(gameDeck.length / 2);
-    const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, cardsPerPlayer);
-    const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, cardsPerPlayer);
+    // Always deal 10 cards per player
+    const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, 10);
+    const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, 10);
     
     setPlayerHand(playerCards);
     setAiHand(aiCards);
@@ -106,6 +105,8 @@ const Game = () => {
           playerHand={playerHand}
           aiHand={aiHand}
           deck={gameDeck}
+          currentRound={currentRound}
+          setCurrentRound={setCurrentRound}
         />
       )}
     </>
