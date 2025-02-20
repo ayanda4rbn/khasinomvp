@@ -23,38 +23,18 @@ export const useGameState = (
   const [aiChowedCards, setAiChowedCards] = useState<Card[]>([]);
 
   const dealNewRound = () => {
-    console.log("Current deck state:", deck);
-    
-    // Make sure we collect all cards back into the deck
-    const allCards = [
-      ...deck,
-      ...tableCards,
-      ...builds.flatMap(build => build.cards),
-    ];
-    
-    console.log("Total cards available:", allCards.length);
-    
-    // Deal exactly 10 cards to each player for round 2
-    const newPlayerHand = allCards.slice(0, 10);
-    const newAiHand = allCards.slice(10, 20);
-    const remainingDeck = allCards.slice(20);
+    // For round 2, simply deal the next 20 cards from the deck (10 each)
+    const newPlayerHand = deck.slice(0, 10);
+    const newAiHand = deck.slice(10, 20);
+    const remainingDeck = deck.slice(20);
 
-    if (newPlayerHand.length === 10 && newAiHand.length === 10) {
-      setPlayerHand(newPlayerHand);
-      setAiHand(newAiHand);
-      setDeck(remainingDeck);
-      setBuilds([]); // Clear any remaining builds
-      setTableCards([]); // Clear table cards
-      setIsPlayerTurn(playerGoesFirst);
-      toast.success("Round 2 starting!");
-    } else {
-      toast.error("Error dealing cards for round 2!");
-      console.error("Not enough cards for round 2", {
-        totalCards: allCards.length,
-        playerCards: newPlayerHand.length,
-        aiCards: newAiHand.length
-      });
-    }
+    setPlayerHand(newPlayerHand);
+    setAiHand(newAiHand);
+    setDeck(remainingDeck);
+    setBuilds([]); // Clear any remaining builds
+    setTableCards([]); // Clear table cards
+    setIsPlayerTurn(playerGoesFirst);
+    toast.success("Round 2 starting!");
   };
 
   return {
