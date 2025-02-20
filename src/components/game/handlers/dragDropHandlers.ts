@@ -58,7 +58,7 @@ export const handleBuildAugment = (
     const allCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
     const updatedBuild: BuildType = {
       ...overlappingBuild,
-      cards: allCards,
+      cards: [...overlappingBuild.cards, card],
       value: newBuildValue,
       owner: 'player' as const
     };
@@ -91,9 +91,10 @@ export const handleNewBuild = (
     const existingBuild = builds.find(b => b.owner === 'player' && b.value === buildValue);
     
     if (existingBuild) {
+      // Add new cards at the end of the existing build's cards array
       const updatedBuild: BuildType = {
         ...existingBuild,
-        cards: [...existingBuild.cards, overlappingCard, card].sort((a, b) => b.value - a.value)
+        cards: [...existingBuild.cards, overlappingCard, card]
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
       setTableCards(tableCards.filter(c => c !== overlappingCard));
@@ -109,13 +110,14 @@ export const handleNewBuild = (
 
   const buildValue = card.value + overlappingCard.value;
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value);
+    // Create new build with cards in the order they were played
+    const buildCards = [overlappingCard, card];
     
     const existingBuild = builds.find(b => b.value === buildValue);
     if (existingBuild) {
       const updatedBuild: BuildType = {
         ...existingBuild,
-        cards: [...existingBuild.cards, ...buildCards].sort((a, b) => b.value - a.value),
+        cards: [...existingBuild.cards, ...buildCards],
         owner: 'player' as const
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
