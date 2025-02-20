@@ -1,6 +1,24 @@
 
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+
+// Helper function to check if cards match
+const cardsMatch = (card1: Card, card2: Card): boolean => {
+  return card1.value === card2.value;
+};
+
+// Helper function to check if a build is possible
+const canBuild = (value: number): boolean => {
+  return value <= 10; // Ensures we can't build values above 10
+};
 
 export const handleDragStart = (
   e: React.DragEvent<HTMLDivElement>,
@@ -47,6 +65,12 @@ export const handleBuildAugment = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ) => {
+  // Can't augment your own build
+  if (build.owner === 'player') {
+    toast.error("You cannot augment your own build!");
+    return false;
+  }
+
   const newBuildValue = build.value + card.value;
   if (newBuildValue <= 10 && newBuildValue < build.value * 2 && playerHand.some(c => c.value === newBuildValue)) {
     if (build.owner === 'ai' && hasPlayerBuild) {
@@ -59,7 +83,7 @@ export const handleBuildAugment = (
       ...build,
       cards: [...build.cards, card].sort((a, b) => b.value - a.value),
       value: newBuildValue,
-      owner: 'player'
+      owner: 'player' // Transfer ownership on augment
     };
     setBuilds(builds.map(b => b.id === build.id ? updatedBuild : b));
     const newPlayerHand = [...playerHand];
@@ -70,6 +94,33 @@ export const handleBuildAugment = (
     return true;
   }
   return false;
+};
+
+export const handleCardAction = (
+  card: Card,
+  tableCard: Card,
+  playerHand: Card[],
+  cardIndex: number,
+  setPlayerChowedCards: React.Dispatch<React.SetStateAction<Card[]>>,
+  setTableCards: (cards: Card[]) => void,
+  setPlayerHand: (hand: Card[]) => void,
+  setIsPlayerTurn: (isPlayerTurn: boolean) => void,
+  tableCards: Card[],
+  buildValue?: number
+) => {
+  if (buildValue) {
+    // Handle as build
+    handleNewBuild(card, tableCard, playerHand, cardIndex, false, () => {}, setTableCards, setPlayerHand, tableCards, []);
+  } else {
+    // Handle as capture
+    setPlayerChowedCards(prev => [...prev, tableCard, card]);
+    setTableCards(tableCards.filter(c => c !== tableCard));
+    const newPlayerHand = [...playerHand];
+    newPlayerHand.splice(cardIndex, 1);
+    setPlayerHand(newPlayerHand);
+    setIsPlayerTurn(false);
+    toast.success("Cards captured!");
+  }
 };
 
 export const handleNewBuild = (
@@ -89,6 +140,29 @@ export const handleNewBuild = (
     return false;
   }
 
+  // If cards match and the value is 5 or less, show build/capture dialog
+  if (cardsMatch(card, overlappingCard) && card.value <= 5) {
+    const possibleBuildValue = card.value * 2;
+    if (playerHand.some(c => c.value === possibleBuildValue)) {
+      // Show dialog for choice
+      return {
+        needsChoice: true,
+        card,
+        overlappingCard,
+        possibleBuildValue
+      };
+    }
+  }
+
+  // Check for matching cards (direct capture)
+  if (cardsMatch(card, overlappingCard)) {
+    const newPlayerHand = [...playerHand];
+    newPlayerHand.splice(cardIndex, 1);
+    setPlayerHand(newPlayerHand);
+    setTableCards(tableCards.filter(c => c !== overlappingCard));
+    return true;
+  }
+
   const buildValue = card.value + overlappingCard.value;
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
     // Sort cards by value (higher values first)
@@ -102,9 +176,20 @@ export const handleNewBuild = (
       owner: 'player'
     };
     
-    setBuilds([...builds, newBuild]);
-    setTableCards(tableCards.filter(c => c !== overlappingCard));
+    // Check for existing builds with same value
+    const existingBuild = builds.find(b => b.value === buildValue && b.owner === 'player');
+    if (existingBuild) {
+      // Stack on existing build
+      const updatedBuild = {
+        ...existingBuild,
+        cards: [...existingBuild.cards, ...buildCards].sort((a, b) => b.value - a.value)
+      };
+      setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
+    } else {
+      setBuilds([...builds, newBuild]);
+    }
     
+    setTableCards(tableCards.filter(c => c !== overlappingCard));
     const newPlayerHand = [...playerHand];
     newPlayerHand.splice(cardIndex, 1);
     setPlayerHand(newPlayerHand);

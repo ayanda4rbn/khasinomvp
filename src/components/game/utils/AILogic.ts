@@ -34,7 +34,6 @@ export const handleAITurn = (
             captureCard.suit === card.suit
           )
         ));
-        // Sort captured cards by value (ascending) and add capturing card last
         const sortedCaptureCards = [...(move.captureCards || [])].sort((a, b) => a.value - b.value);
         setAiChowedCards(prev => [...prev, ...sortedCaptureCards, move.card]);
       }
@@ -45,7 +44,6 @@ export const handleAITurn = (
             captureBuild.id === build.id
           )
         ));
-        // Keep build cards in their original order and add capturing card last
         setAiChowedCards(prev => [...prev, ...capturedBuildCards, move.card]);
         toast.success("AI captured a build!");
       }
@@ -58,17 +56,27 @@ export const handleAITurn = (
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
-          // Sort cards by value (higher values first)
           const buildCards = [move.buildWith, move.card].sort((a, b) => b.value - a.value);
-            
-          const newBuild: BuildType = {
-            id: Date.now(),
-            cards: buildCards,
-            value: buildValue,
-            position: { x, y },
-            owner: 'ai'
-          };
-          setBuilds([...builds, newBuild]);
+          
+          // Check for existing build with same value
+          const existingBuild = builds.find(b => b.value === buildValue && b.owner === 'ai');
+          if (existingBuild) {
+            const updatedBuild = {
+              ...existingBuild,
+              cards: [...existingBuild.cards, ...buildCards].sort((a, b) => b.value - a.value)
+            };
+            setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
+          } else {
+            const newBuild: BuildType = {
+              id: Date.now(),
+              cards: buildCards,
+              value: buildValue,
+              position: { x, y },
+              owner: 'ai'
+            };
+            setBuilds([...builds, newBuild]);
+          }
+          
           setTableCards(tableCards.filter(card => 
             card.value !== move.buildWith.value || 
             card.suit !== move.buildWith.suit
@@ -80,14 +88,20 @@ export const handleAITurn = (
 
     case 'augment':
       if (move.augmentBuild && !hasAIBuild) {
+        // Can't augment AI's own build
+        if (move.augmentBuild.owner === 'ai') {
+          setIsPlayerTurn(true);
+          return;
+        }
+
         const newBuildValue = move.augmentBuild.value + move.card.value;
         if (newBuildValue <= 10 && newBuildValue < move.augmentBuild.value * 2 && aiHand.some(card => card.value === newBuildValue)) {
-          // Keep existing build cards order and add new card in correct position
           const allCards = [...move.augmentBuild.cards, move.card].sort((a, b) => b.value - a.value);
           const updatedBuild: BuildType = {
             ...move.augmentBuild,
             cards: allCards,
-            value: newBuildValue
+            value: newBuildValue,
+            owner: 'ai' // Transfer ownership to AI
           };
           setBuilds(builds.map(b => b.id === move.augmentBuild?.id ? updatedBuild : b));
           toast.info("AI augmented a build!");

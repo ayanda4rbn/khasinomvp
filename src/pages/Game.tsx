@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/types/game";
@@ -35,11 +36,8 @@ const Game = () => {
 
   useEffect(() => {
     if (gameMode === "ai") {
-      // Initialize a fresh deck for the game
       const freshDeck = getStandardDeck();
       const shuffledDeck = shuffleDeck(freshDeck);
-      
-      // Deal 5 cards for initial selection
       const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
       setSelectionCards(selectedCards);
       setGameDeck(remaining);
@@ -52,13 +50,11 @@ const Game = () => {
     const selectedCard = { ...selectionCards[index], faceUp: true };
     setPlayerSelectedCard(selectedCard);
 
-    // AI selects a random card from remaining cards
     const remainingCards = selectionCards.filter((_, i) => i !== index);
     const aiCardIndex = Math.floor(Math.random() * remainingCards.length);
     const aiCard = { ...remainingCards[aiCardIndex], faceUp: true };
     setAiSelectedCard(aiCard);
 
-    // Update the selection cards to show both selected cards
     const updatedSelectionCards = selectionCards.map((card, i) => {
       if (i === index) return selectedCard;
       if (i === aiCardIndex) return aiCard;
@@ -81,14 +77,15 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    // Deal exactly 10 cards to each player for round 1
-    const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, 10);
-    const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, 10);
+    // Ensure equal number of cards for both players
+    const cardsPerPlayer = Math.floor(gameDeck.length / 2);
+    const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, cardsPerPlayer);
+    const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, cardsPerPlayer);
     
     setPlayerHand(playerCards);
-    setAiHand(aiCards); // Set AI's hand explicitly
+    setAiHand(aiCards);
     setTableCards([]);
-    setGameDeck(afterAIDeal); // Store remaining cards for round 2
+    setGameDeck(afterAIDeal);
   };
 
   return (
