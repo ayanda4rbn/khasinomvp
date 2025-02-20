@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -42,19 +43,24 @@ export const handleBuildAugment = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ): boolean => {
-  if (hasPlayerBuild) {
-    toast.error("You cannot augment when you have an existing build!");
+  if (overlappingBuild.owner === 'player') {
+    toast.error("You cannot augment your own build!");
     return false;
   }
 
   const newBuildValue = overlappingBuild.value + card.value;
-  if (newBuildValue <= 10 && newBuildValue < overlappingBuild.value * 2) {
+  if (newBuildValue <= 10 && newBuildValue < overlappingBuild.value * 2 && playerHand.some(c => c.value === newBuildValue)) {
+    if (overlappingBuild.owner === 'ai' && hasPlayerBuild) {
+      toast.error("You cannot augment when you have an existing build!");
+      return false;
+    }
+
     const allCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
     const updatedBuild: BuildType = {
       ...overlappingBuild,
       cards: allCards,
       value: newBuildValue,
-      owner: 'player' // Take ownership when augmenting
+      owner: 'player' as const
     };
     setBuilds(builds.map(b => b.id === overlappingBuild?.id ? updatedBuild : b));
 
@@ -79,15 +85,13 @@ export const handleNewBuild = (
   setPlayerHand: (hand: Card[]) => void,
   tableCards: Card[],
   builds: BuildType[]
-) => {
+): boolean => {
   if (hasPlayerBuild) {
-    // Check if there's an existing build with the same value
     const buildValue = card.value + overlappingCard.value;
     const existingBuild = builds.find(b => b.owner === 'player' && b.value === buildValue);
     
     if (existingBuild) {
-      // Add cards to existing build
-      const updatedBuild = {
+      const updatedBuild: BuildType = {
         ...existingBuild,
         cards: [...existingBuild.cards, overlappingCard, card].sort((a, b) => b.value - a.value)
       };
@@ -105,17 +109,14 @@ export const handleNewBuild = (
 
   const buildValue = card.value + overlappingCard.value;
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    // Sort cards by value (higher values first)
     const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value);
     
-    // Check for existing build with same value
     const existingBuild = builds.find(b => b.value === buildValue);
     if (existingBuild) {
-      // Stack on existing build
-      const updatedBuild = {
+      const updatedBuild: BuildType = {
         ...existingBuild,
         cards: [...existingBuild.cards, ...buildCards].sort((a, b) => b.value - a.value),
-        owner: 'player' // Take ownership when adding to existing build
+        owner: 'player' as const
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
     } else {
@@ -124,7 +125,7 @@ export const handleNewBuild = (
         cards: buildCards,
         value: buildValue,
         position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
-        owner: 'player'
+        owner: 'player' as const
       };
       setBuilds([...builds, newBuild]);
     }

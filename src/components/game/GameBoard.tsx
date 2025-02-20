@@ -16,6 +16,8 @@ interface GameBoardProps {
   playerHand: Card[];
   aiHand: Card[];
   deck: Card[];
+  currentRound: 1 | 2;
+  setCurrentRound: React.Dispatch<React.SetStateAction<1 | 2>>;
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({ 
@@ -23,7 +25,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   tableCards: initialTableCards, 
   playerHand: initialPlayerHand,
   aiHand: initialAiHand,
-  deck: initialDeck
+  deck: initialDeck,
+  currentRound,
+  setCurrentRound
 }) => {
   const gameState = useGameState(
     playerGoesFirst,
