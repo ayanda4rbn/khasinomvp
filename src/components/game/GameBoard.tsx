@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card } from '@/types/game';
 import { TableArea } from './TableArea';
@@ -36,6 +35,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     initialAiHand,
     initialDeck
   );
+
+  const handleEndTurn = () => {
+    // Process any selected table cards here
+    // For now, just end the turn
+    gameState.setIsPlayerTurn(false);
+  };
 
   useEffect(() => {
     if (!gameState.isPlayerTurn && gameState.aiHand.length > 0) {
@@ -198,6 +203,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           playerChowedCards={gameState.playerChowedCards}
           aiChowedCards={gameState.aiChowedCards}
           builds={gameState.builds}
+          isPlayerTurn={gameState.isPlayerTurn}
+          onEndTurn={handleEndTurn}
         />
       </div>
 

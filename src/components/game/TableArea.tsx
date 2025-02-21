@@ -1,6 +1,8 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
+import { Button } from '@/components/ui/button';
 
 interface TableAreaProps {
   tableCards: Card[];
@@ -10,6 +12,8 @@ interface TableAreaProps {
   playerChowedCards: Card[];
   aiChowedCards: Card[];
   builds?: BuildType[];
+  isPlayerTurn: boolean;
+  onEndTurn: () => void;
 }
 
 export const TableArea: React.FC<TableAreaProps> = ({
@@ -17,10 +21,24 @@ export const TableArea: React.FC<TableAreaProps> = ({
   onDragOver,
   onDrop,
   playerName,
-  playerChowedCards = [], // Default to empty array if undefined
-  aiChowedCards = [], // Default to empty array if undefined
-  builds = [], // Default to empty array if undefined
+  playerChowedCards = [],
+  aiChowedCards = [],
+  builds = [],
+  isPlayerTurn,
+  onEndTurn,
 }) => {
+  const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+
+  const handleCardClick = (card: Card) => {
+    if (!isPlayerTurn) return;
+
+    if (selectedCards.includes(card)) {
+      setSelectedCards(selectedCards.filter(c => c !== card));
+    } else {
+      setSelectedCards([...selectedCards, card]);
+    }
+  };
+
   return (
     <div className="flex items-start w-full max-w-[880px]">
       {/* Left side area for chowed cards */}
@@ -63,6 +81,15 @@ export const TableArea: React.FC<TableAreaProps> = ({
             ))}
           </div>
         </div>
+        {/* End Turn Button */}
+        {isPlayerTurn && selectedCards.length > 0 && (
+          <Button 
+            onClick={onEndTurn}
+            className="mt-4"
+          >
+            End Turn
+          </Button>
+        )}
       </div>
 
       {/* Main Table */}
@@ -80,9 +107,11 @@ export const TableArea: React.FC<TableAreaProps> = ({
               left: card.tableX || 0,
               top: card.tableY || 0,
             }}
+            onClick={() => handleCardClick(card)}
           >
             <CardComponent
               card={{ ...card, faceUp: true }}
+              isSelected={selectedCards.includes(card)}
             />
           </div>
         ))}
@@ -115,6 +144,10 @@ export const TableArea: React.FC<TableAreaProps> = ({
             {/* Build value indicator */}
             <div className="absolute -top-2 -right-2 w-6 h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-sm font-bold z-50">
               {build.value}
+            </div>
+            {/* Owner indicator */}
+            <div className="absolute -bottom-2 -right-2 text-xs text-white bg-black/50 px-1 rounded">
+              {build.owner === 'player' ? playerName : 'AI'}
             </div>
           </div>
         ))}
