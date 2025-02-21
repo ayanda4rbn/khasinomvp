@@ -155,6 +155,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gameState.setBuilds,
         gameState.setTableCards,
         gameState.setPlayerHand,
+        gameState.setPlayerChowedCards,
+        gameState.setIsPlayerTurn,
         gameState.tableCards,
         gameState.builds
       )) {
