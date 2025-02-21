@@ -84,6 +84,8 @@ export const handleNewBuild = (
   setBuilds: (builds: BuildType[]) => void,
   setTableCards: (cards: Card[]) => void,
   setPlayerHand: (hand: Card[]) => void,
+  setPlayerChowedCards: React.Dispatch<React.SetStateAction<Card[]>>,
+  setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {

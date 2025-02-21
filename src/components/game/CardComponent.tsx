@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/types/game';
 
@@ -6,6 +7,7 @@ interface CardComponentProps {
   onClick?: () => void;
   className?: string;
   isDraggable?: boolean;
+  isSelected?: boolean;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
 }
@@ -15,6 +17,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
   onClick, 
   className = '',
   isDraggable = false,
+  isSelected = false,
   onDragStart,
   onDragEnd,
 }) => {
@@ -27,7 +30,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
   const color = card.suit === 'hearts' || card.suit === 'diamonds' ? 'text-red-500' : 'text-black';
   const cardStyle = card.faceUp 
-    ? `w-12 h-16 bg-white rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center m-0.5 relative ${color} ${card.selected ? 'ring-2 ring-casino-gold' : ''} ${className} ${isDraggable ? 'cursor-move' : ''}`
+    ? `w-12 h-16 bg-white rounded-lg border-2 ${isSelected ? 'border-casino-gold' : 'border-gray-300'} flex flex-col items-center justify-center m-0.5 relative ${color} ${isSelected ? 'ring-2 ring-casino-gold' : ''} ${className} ${isDraggable ? 'cursor-move' : ''}`
     : `w-12 h-16 bg-blue-500 rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center m-0.5 cursor-pointer hover:bg-blue-600 ${className}`;
 
   return (
