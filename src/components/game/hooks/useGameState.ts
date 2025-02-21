@@ -23,16 +23,22 @@ export const useGameState = (
   const [aiChowedCards, setAiChowedCards] = useState<Card[]>([]);
 
   const dealNewRound = () => {
-    // For round 2, simply deal the next 20 cards from the deck (10 each)
+    // Deal the next 20 cards from the deck (10 each) without affecting table/builds
+    console.log("Dealing round 2. Current deck size:", deck.length);
+    
     const newPlayerHand = deck.slice(0, 10);
     const newAiHand = deck.slice(10, 20);
     const remainingDeck = deck.slice(20);
 
+    console.log("Round 2 distribution:", {
+      playerCards: newPlayerHand.length,
+      aiCards: newAiHand.length,
+      remainingDeck: remainingDeck.length
+    });
+
     setPlayerHand(newPlayerHand);
     setAiHand(newAiHand);
     setDeck(remainingDeck);
-    setBuilds([]); // Clear any remaining builds
-    setTableCards([]); // Clear table cards
     setIsPlayerTurn(playerGoesFirst);
     toast.success("Round 2 starting!");
   };
