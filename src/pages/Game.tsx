@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/types/game";
@@ -77,14 +78,22 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    // Always deal 10 cards per player
+    console.log("Initial deck size:", gameDeck.length);
+    
+    // Deal 10 cards each for round 1
     const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, 10);
     const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, 10);
     
+    console.log("Round 1 distribution:", {
+      playerCards: playerCards.length,
+      aiCards: aiCards.length,
+      remainingDeck: afterAIDeal.length
+    });
+
     setPlayerHand(playerCards);
     setAiHand(aiCards);
-    setTableCards([]);
     setGameDeck(afterAIDeal);
+    setTableCards([]);
   };
 
   return (
