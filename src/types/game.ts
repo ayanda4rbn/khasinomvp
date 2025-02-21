@@ -1,3 +1,4 @@
+
 export interface Card {
   value: number;
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
@@ -14,4 +15,18 @@ export interface BuildType {
   value: number;
   position: { x: number; y: number };
   owner: 'player' | 'ai' | null;
+}
+
+export interface GameScore {
+  cardsCount: number;
+  spadesCount: number;
+  bigCasino: boolean;
+  littleCasino: boolean;
+  total: number;
+}
+
+export interface GameSummary {
+  playerScore: GameScore;
+  aiScore: GameScore;
+  winner: 'player' | 'ai' | 'tie';
 }

@@ -8,6 +8,7 @@ import { PlayerHand } from './PlayerHand';
 import { AIHand } from './AIHand';
 import { useGameState } from './hooks/useGameState';
 import { handleDragStart, handleBuildCapture, handleBuildAugment, handleNewBuild } from './handlers/dragDropHandlers';
+import { GameSummaryDialog } from './GameSummaryDialog';
 
 interface GameBoardProps {
   playerGoesFirst: boolean;
@@ -186,6 +187,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   };
 
+  // Add effect to check for game end
+  useEffect(() => {
+    if (gameState.currentRound === 2 && 
+        gameState.playerHand.length === 0 && 
+        gameState.aiHand.length === 0) {
+      gameState.calculateGameSummary();
+    }
+  }, [gameState.currentRound, gameState.playerHand.length, gameState.aiHand.length]);
+
   return (
     <div className="h-screen bg-casino-green p-4 flex flex-col">
       <GameHeader 
@@ -216,6 +226,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         isPlayerTurn={gameState.isPlayerTurn}
         onDragStart={(e, index) => handleDragStart(e, index, gameState.isPlayerTurn)}
       />
+
+      {gameState.gameSummary && (
+        <GameSummaryDialog
+          open={gameState.showGameSummary}
+          onClose={() => gameState.setShowGameSummary(false)}
+          summary={gameState.gameSummary}
+          playerName={gameState.playerName}
+        />
+      )}
     </div>
   );
 };
