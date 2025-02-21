@@ -78,10 +78,14 @@ const Game = () => {
   };
 
   const dealInitialCards = () => {
-    console.log("Initial deck size:", gameDeck.length);
+    // Return selection cards to the deck and shuffle
+    const fullDeck = [...gameDeck, ...selectionCards];
+    const shuffledDeck = shuffleDeck(fullDeck);
+    
+    console.log("Initial deck size after returning selection cards:", shuffledDeck.length);
     
     // Deal 10 cards each for round 1
-    const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(gameDeck, 10);
+    const { dealt: playerCards, remaining: afterPlayerDeal } = dealCards(shuffledDeck, 10);
     const { dealt: aiCards, remaining: afterAIDeal } = dealCards(afterPlayerDeal, 10);
     
     console.log("Round 1 distribution:", {
