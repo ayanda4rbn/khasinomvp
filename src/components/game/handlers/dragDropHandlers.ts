@@ -22,7 +22,9 @@ export const handleBuildCapture = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ) => {
-  setPlayerChowedCards(prev => [...prev, ...overlappingBuild.cards, card]);
+  // Sort cards before adding to chowed cards
+  const sortedCards = [...overlappingBuild.cards, card].sort((a, b) => a.value - b.value);
+  setPlayerChowedCards(prev => [...prev, ...sortedCards]);
   setBuilds(builds.filter(build => build.id !== overlappingBuild.id));
 
   const newPlayerHand = [...playerHand];
@@ -55,7 +57,7 @@ export const handleBuildAugment = (
       return false;
     }
 
-    // Sort cards by value in ascending order (small cards on top)
+    // Sort cards by value in ascending order
     const allCards = [...overlappingBuild.cards, card].sort((a, b) => a.value - b.value);
     const updatedBuild: BuildType = {
       ...overlappingBuild,
@@ -89,38 +91,16 @@ export const handleNewBuild = (
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {
-  // Check for matching values for chow (now including values 6 and above)
+  // Handle chowing of matching values (including 6 and above)
   if (card.value === overlappingCard.value) {
-    // Handle as chow for values 6 and above, or if player can't build with lower values
-    if (card.value >= 6 || !playerHand.some(c => c.value === card.value * 2)) {
-      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-      setTableCards(tableCards.filter(c => c !== overlappingCard));
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      toast.success(`Chowed ${card.value}`);
-      return true;
-    }
-
-    // For values below 6, show choice dialog if player has the sum value
-    if (card.value < 6 && playerHand.some(c => c.value === card.value * 2)) {
-      const dialog = window.confirm(
-        `Do you want to build a ${card.value * 2} (OK) or chow the ${card.value} (Cancel)?`
-      );
-
-      if (!dialog) {
-        // Handle as chow
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-        setIsPlayerTurn(false);
-        toast.success(`Chowed ${card.value}`);
-        return true;
-      }
-    }
+    setPlayerChowedCards(prev => [...prev, overlappingCard, card].sort((a, b) => a.value - b.value));
+    setTableCards(tableCards.filter(c => c !== overlappingCard));
+    const newPlayerHand = [...playerHand];
+    newPlayerHand.splice(cardIndex, 1);
+    setPlayerHand(newPlayerHand);
+    setIsPlayerTurn(false);
+    toast.success(`Chowed ${card.value}`);
+    return true;
   }
 
   const buildValue = card.value + overlappingCard.value;
@@ -131,7 +111,7 @@ export const handleNewBuild = (
   }
 
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    // Create new build with cards sorted by value (small cards on top)
+    // Always sort cards by value (smaller cards on top)
     const buildCards = [overlappingCard, card].sort((a, b) => a.value - b.value);
     const newBuild: BuildType = {
       id: Date.now(),
