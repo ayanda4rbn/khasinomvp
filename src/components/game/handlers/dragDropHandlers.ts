@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -89,27 +88,48 @@ export const handleNewBuild = (
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {
-  if (hasPlayerBuild) {
-    const buildValue = card.value + overlappingCard.value;
-    const existingBuild = builds.find(b => b.owner === 'player' && b.value === buildValue);
-    
-    if (existingBuild) {
-      // Sort cards by value in descending order (small cards on top)
-      const allCards = [...existingBuild.cards, overlappingCard, card].sort((a, b) => a.value - b.value);
-      const updatedBuild: BuildType = {
-        ...existingBuild,
-        cards: allCards
-      };
-      setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
+  // Check if it's a potential chow (matching card values ≤ 6)
+  if (card.value <= 6 && card.value === overlappingCard.value) {
+    // For values 6 and above, directly handle as chow
+    if (card.value >= 6) {
+      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
       setTableCards(tableCards.filter(c => c !== overlappingCard));
       const newPlayerHand = [...playerHand];
       newPlayerHand.splice(cardIndex, 1);
       setPlayerHand(newPlayerHand);
+      setIsPlayerTurn(false);
+      toast.success(`Chowed ${card.value}`);
       return true;
     }
-    
-    toast.error("You cannot create multiple builds of different values!");
-    return false;
+
+    // For values below 6, show choice dialog only if player has the sum value
+    if (playerHand.some(c => c.value === card.value * 2)) {
+      const dialog = window.confirm(
+        `Do you want to build a ${card.value * 2} (OK) or chow the ${card.value} (Cancel)?`
+      );
+
+      if (!dialog) {
+        // Handle as chow
+        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+        setIsPlayerTurn(false);
+        toast.success(`Chowed ${card.value}`);
+        return true;
+      }
+    } else {
+      // Automatically chow if sum value not in hand
+      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+      setTableCards(tableCards.filter(c => c !== overlappingCard));
+      const newPlayerHand = [...playerHand];
+      newPlayerHand.splice(cardIndex, 1);
+      setPlayerHand(newPlayerHand);
+      setIsPlayerTurn(false);
+      toast.success(`Chowed ${card.value}`);
+      return true;
+    }
   }
 
   const buildValue = card.value + overlappingCard.value;

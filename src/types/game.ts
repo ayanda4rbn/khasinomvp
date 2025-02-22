@@ -20,8 +20,9 @@ export interface BuildType {
 export interface GameScore {
   cardsCount: number;
   spadesCount: number;
-  bigCasino: boolean;
-  littleCasino: boolean;
+  mummy: boolean;
+  spy: boolean;
+  aces: number;
   total: number;
 }
 

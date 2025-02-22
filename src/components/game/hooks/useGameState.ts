@@ -7,14 +7,49 @@ export const calculateScore = (chowedCards: Card[]): GameScore => {
   const score: GameScore = {
     cardsCount: chowedCards.length,
     spadesCount: chowedCards.filter(card => card.suit === 'spades').length,
-    bigCasino: chowedCards.some(card => card.value === 10 && card.suit === 'diamonds'),
-    littleCasino: chowedCards.some(card => card.value === 2 && card.suit === 'spades'),
+    mummy: chowedCards.some(card => card.value === 10 && card.suit === 'diamonds'), // 10 of diamonds
+    spy: chowedCards.some(card => card.value === 2 && card.suit === 'spades'), // 2 of spades
+    aces: chowedCards.filter(card => card.value === 1).length, // Count of aces
     total: 0
   };
 
-  // Calculate total score
-  score.total = score.cardsCount + score.spadesCount + (score.bigCasino ? 2 : 0) + (score.littleCasino ? 1 : 0);
+  // Calculate points based on the rules:
+  // - 2 points for most cards
+  // - 1 point for most spades
+  // - 2 points for Mummy (10 of diamonds)
+  // - 1 point for Spy (2 of spades)
+  // - 1 point for each ace
+  score.total = score.aces;  // Start with ace points
+  if (score.mummy) score.total += 2;
+  if (score.spy) score.total += 1;
+
   return score;
+};
+
+export const determineWinner = (playerScore: GameScore, aiScore: GameScore): GameSummary => {
+  let playerTotal = playerScore.total;
+  let aiTotal = aiScore.total;
+
+  // Add points for most cards (2 points)
+  if (playerScore.cardsCount > aiScore.cardsCount) {
+    playerTotal += 2;
+  } else if (aiScore.cardsCount > playerScore.cardsCount) {
+    aiTotal += 2;
+  }
+
+  // Add points for most spades (1 point)
+  if (playerScore.spadesCount > aiScore.spadesCount) {
+    playerTotal += 1;
+  } else if (aiScore.spadesCount > playerScore.spadesCount) {
+    aiTotal += 1;
+  }
+
+  return {
+    playerScore: { ...playerScore, total: playerTotal },
+    aiScore: { ...aiScore, total: aiTotal },
+    winner: playerTotal > aiTotal ? 'player' : 
+            aiTotal > playerTotal ? 'ai' : 'tie'
+  };
 };
 
 export const useGameState = (
@@ -41,15 +76,8 @@ export const useGameState = (
   const calculateGameSummary = () => {
     const playerScore = calculateScore(playerChowedCards);
     const aiScore = calculateScore(aiChowedCards);
-
-    const winner = playerScore.total > aiScore.total ? 'player' : 
-                  aiScore.total > playerScore.total ? 'ai' : 'tie';
-
-    setGameSummary({
-      playerScore,
-      aiScore,
-      winner
-    });
+    const summary = determineWinner(playerScore, aiScore);
+    setGameSummary(summary);
     setShowGameSummary(true);
   };
 

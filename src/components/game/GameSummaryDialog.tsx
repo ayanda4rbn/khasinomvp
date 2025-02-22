@@ -29,18 +29,20 @@ export const GameSummaryDialog: React.FC<GameSummaryDialogProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <h3 className="font-bold">{playerName}</h3>
-            <p>Cards: {summary.playerScore.cardsCount}</p>
-            <p>Spades: {summary.playerScore.spadesCount}</p>
-            <p>Big Casino: {summary.playerScore.bigCasino ? "Yes (+2)" : "No"}</p>
-            <p>Little Casino: {summary.playerScore.littleCasino ? "Yes (+1)" : "No"}</p>
+            <p>Cards: {summary.playerScore.cardsCount} {summary.playerScore.cardsCount > summary.aiScore.cardsCount ? "(+2)" : ""}</p>
+            <p>Spades: {summary.playerScore.spadesCount} {summary.playerScore.spadesCount > summary.aiScore.spadesCount ? "(+1)" : ""}</p>
+            <p>Mummy: {summary.playerScore.mummy ? "Yes (+2)" : "No"}</p>
+            <p>Spy: {summary.playerScore.spy ? "Yes (+1)" : "No"}</p>
+            <p>Aces: {summary.playerScore.aces} (+{summary.playerScore.aces})</p>
             <p className="font-bold">Total: {summary.playerScore.total}</p>
           </div>
           <div className="space-y-2">
             <h3 className="font-bold">AI</h3>
-            <p>Cards: {summary.aiScore.cardsCount}</p>
-            <p>Spades: {summary.aiScore.spadesCount}</p>
-            <p>Big Casino: {summary.aiScore.bigCasino ? "Yes (+2)" : "No"}</p>
-            <p>Little Casino: {summary.aiScore.littleCasino ? "Yes (+1)" : "No"}</p>
+            <p>Cards: {summary.aiScore.cardsCount} {summary.aiScore.cardsCount > summary.playerScore.cardsCount ? "(+2)" : ""}</p>
+            <p>Spades: {summary.aiScore.spadesCount} {summary.aiScore.spadesCount > summary.playerScore.spadesCount ? "(+1)" : ""}</p>
+            <p>Mummy: {summary.aiScore.mummy ? "Yes (+2)" : "No"}</p>
+            <p>Spy: {summary.aiScore.spy ? "Yes (+1)" : "No"}</p>
+            <p>Aces: {summary.aiScore.aces} (+{summary.aiScore.aces})</p>
             <p className="font-bold">Total: {summary.aiScore.total}</p>
           </div>
         </div>
