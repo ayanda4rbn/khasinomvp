@@ -30,7 +30,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
   const color = card.suit === 'hearts' || card.suit === 'diamonds' ? 'text-red-500' : 'text-black';
   const cardStyle = card.faceUp 
-    ? `w-12 h-16 bg-white rounded-lg border-2 ${isSelected ? 'border-casino-gold' : 'border-gray-300'} flex flex-col items-center justify-center m-0.5 relative ${color} ${isSelected ? 'ring-2 ring-casino-gold' : ''} ${className} ${isDraggable ? 'cursor-move' : ''}`
+    ? `w-12 h-16 bg-white rounded-lg border-2 ${isSelected ? 'border-casino-gold' : 'border-gray-300'} flex flex-col items-center justify-center m-0.5 relative ${color} ${isSelected ? 'ring-2 ring-casino-gold' : ''} ${className} ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}`
     : `w-12 h-16 bg-blue-500 rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center m-0.5 cursor-pointer hover:bg-blue-600 ${className}`;
 
   return (

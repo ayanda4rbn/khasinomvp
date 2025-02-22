@@ -14,6 +14,7 @@ interface TableAreaProps {
   builds?: BuildType[];
   isPlayerTurn: boolean;
   onEndTurn: () => void;
+  hasPlayedCard: boolean;
 }
 
 export const TableArea: React.FC<TableAreaProps> = ({
@@ -26,6 +27,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
   builds = [],
   isPlayerTurn,
   onEndTurn,
+  hasPlayedCard,
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
 
@@ -82,10 +84,11 @@ export const TableArea: React.FC<TableAreaProps> = ({
           </div>
         </div>
         {/* End Turn Button */}
-        {isPlayerTurn && selectedCards.length > 0 && (
+        {isPlayerTurn && (
           <Button 
             onClick={onEndTurn}
             className="mt-4"
+            disabled={!hasPlayedCard}
           >
             End Turn
           </Button>
