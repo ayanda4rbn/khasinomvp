@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -54,7 +55,7 @@ export const handleBuildAugment = (
       return false;
     }
 
-    // Sort cards by value in descending order (small cards on top)
+    // Sort cards by value in ascending order (small cards on top)
     const allCards = [...overlappingBuild.cards, card].sort((a, b) => a.value - b.value);
     const updatedBuild: BuildType = {
       ...overlappingBuild,
@@ -88,10 +89,10 @@ export const handleNewBuild = (
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {
-  // Check if it's a potential chow (matching card values ≤ 6)
-  if (card.value <= 6 && card.value === overlappingCard.value) {
-    // For values 6 and above, directly handle as chow
-    if (card.value >= 6) {
+  // Check for matching values for chow (now including values 6 and above)
+  if (card.value === overlappingCard.value) {
+    // Handle as chow for values 6 and above, or if player can't build with lower values
+    if (card.value >= 6 || !playerHand.some(c => c.value === card.value * 2)) {
       setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
       setTableCards(tableCards.filter(c => c !== overlappingCard));
       const newPlayerHand = [...playerHand];
@@ -102,8 +103,8 @@ export const handleNewBuild = (
       return true;
     }
 
-    // For values below 6, show choice dialog only if player has the sum value
-    if (playerHand.some(c => c.value === card.value * 2)) {
+    // For values below 6, show choice dialog if player has the sum value
+    if (card.value < 6 && playerHand.some(c => c.value === card.value * 2)) {
       const dialog = window.confirm(
         `Do you want to build a ${card.value * 2} (OK) or chow the ${card.value} (Cancel)?`
       );
@@ -119,57 +120,14 @@ export const handleNewBuild = (
         toast.success(`Chowed ${card.value}`);
         return true;
       }
-    } else {
-      // Automatically chow if sum value not in hand
-      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-      setTableCards(tableCards.filter(c => c !== overlappingCard));
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      toast.success(`Chowed ${card.value}`);
-      return true;
     }
   }
 
   const buildValue = card.value + overlappingCard.value;
   
-  // Check if AI already has a build with this value
   if (builds.some(b => b.owner === 'ai' && b.value === buildValue)) {
     toast.error("Cannot build a value that your opponent has already built!");
     return false;
-  }
-
-  // Check if it's a potential chow (matching card values ≤ 5)
-  if (card.value <= 5 && card.value === overlappingCard.value) {
-    // If player has the sum value in hand, show choice dialog
-    if (playerHand.some(c => c.value === card.value * 2)) {
-      const dialog = window.confirm(
-        `Do you want to build a ${card.value * 2} (OK) or chow the ${card.value} (Cancel)?`
-      );
-
-      if (!dialog) {
-        // Handle as chow
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-        setIsPlayerTurn(false);
-        toast.success(`Chowed ${card.value}`);
-        return true;
-      }
-    } else {
-      // Automatically chow if sum value not in hand
-      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-      setTableCards(tableCards.filter(c => c !== overlappingCard));
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      toast.success(`Chowed ${card.value}`);
-      return true;
-    }
   }
 
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
@@ -187,6 +145,7 @@ export const handleNewBuild = (
     const newPlayerHand = [...playerHand];
     newPlayerHand.splice(cardIndex, 1);
     setPlayerHand(newPlayerHand);
+    setIsPlayerTurn(false);
     return true;
   }
   toast.error("Invalid build! You must have a card matching the build value.");

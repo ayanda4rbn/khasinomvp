@@ -37,6 +37,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     initialDeck
   );
   const [hasPlayedCard, setHasPlayedCard] = useState(false);
+  const [lastChowedBy, setLastChowedBy] = useState<'player' | 'ai'>(playerGoesFirst ? 'player' : 'ai');
 
   const handleEndTurn = () => {
     if (!hasPlayedCard) return;
@@ -72,22 +73,34 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [gameState.playerHand.length, gameState.aiHand.length, gameState.currentRound]);
 
-  // Check for game end and assign remaining cards to last player who chowed
+  // Update lastChowedBy whenever a player makes a capture
+  useEffect(() => {
+    if (gameState.playerChowedCards.length > 0) {
+      setLastChowedBy('player');
+    } else if (gameState.aiChowedCards.length > 0) {
+      setLastChowedBy('ai');
+    }
+  }, [gameState.playerChowedCards.length, gameState.aiChowedCards.length]);
+
+  // Check for game end and assign remaining cards
   useEffect(() => {
     if (gameState.currentRound === 2 && 
         gameState.playerHand.length === 0 && 
         gameState.aiHand.length === 0) {
       // Give remaining table cards to the last player who made a capture
       if (gameState.tableCards.length > 0) {
-        const lastPlayer = gameState.isPlayerTurn ? 'ai' : 'player';
-        if (lastPlayer === 'player') {
+        if (lastChowedBy === 'player') {
           gameState.setPlayerChowedCards(prev => [...prev, ...gameState.tableCards]);
         } else {
           gameState.setAiChowedCards(prev => [...prev, ...gameState.tableCards]);
         }
         gameState.setTableCards([]);
       }
-      gameState.calculateGameSummary();
+      
+      // Calculate final scores after all cards have been assigned
+      setTimeout(() => {
+        gameState.calculateGameSummary();
+      }, 100);
     }
   }, [gameState.currentRound, gameState.playerHand.length, gameState.aiHand.length]);
 
