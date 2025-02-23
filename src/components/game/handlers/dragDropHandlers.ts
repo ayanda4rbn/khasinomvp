@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -162,18 +163,29 @@ export const handleNewBuild = (
     // Check for existing build with the same value
     const existingBuild = builds.find(b => b.value === buildValue);
     if (existingBuild) {
-      // Add to existing build, keeping original order
+      // Add to existing build, ensuring smaller cards are on top
+      const newCards = [...existingBuild.cards];
+      // Insert new cards in correct position (smaller on top)
+      if (overlappingCard.value < card.value) {
+        newCards.push(card, overlappingCard);
+      } else {
+        newCards.push(overlappingCard, card);
+      }
       const updatedBuild = {
         ...existingBuild,
-        cards: [...existingBuild.cards, overlappingCard, card],
+        cards: newCards,
         owner: 'player' as const
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
     } else {
-      // Create new build
+      // Create new build with smaller card on top
+      const buildCards = overlappingCard.value < card.value 
+        ? [card, overlappingCard]  // overlappingCard is smaller, it goes on top
+        : [overlappingCard, card]; // card is smaller, it goes on top
+      
       const newBuild: BuildType = {
         id: Date.now(),
-        cards: [overlappingCard, card],
+        cards: buildCards,
         value: buildValue,
         position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
         owner: 'player' as const
