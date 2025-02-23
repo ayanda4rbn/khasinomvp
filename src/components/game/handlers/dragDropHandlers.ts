@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -22,9 +21,8 @@ export const handleBuildCapture = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ) => {
-  // Sort cards before adding to chowed cards (big to small)
-  const sortedCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
-  setPlayerChowedCards(prev => [...prev, ...sortedCards]);
+  // Keep build order and add capturing card on top
+  setPlayerChowedCards(prev => [...prev, ...overlappingBuild.cards, card]);
   setBuilds(builds.filter(build => build.id !== overlappingBuild.id));
 
   const newPlayerHand = [...playerHand];
@@ -58,7 +56,7 @@ export const handleBuildAugment = async (
     );
 
     if (shouldChow) {
-      // Handle as chow
+      // Keep original order and add chowing card on top
       setPlayerChowedCards(prev => [...prev, ...overlappingBuild.cards, card]);
       setBuilds(builds.filter(b => b.id !== overlappingBuild.id));
       const newPlayerHand = [...playerHand];
@@ -79,21 +77,18 @@ export const handleBuildAugment = async (
     // Check if there's an existing build with the same value
     const existingBuild = builds.find(b => b.value === overlappingBuild.value && b.id !== overlappingBuild.id);
     if (existingBuild) {
-      // Combine the builds
-      const allCards = [...existingBuild.cards, ...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
+      // Combine the builds, keeping their original order
       const updatedBuild = {
         ...existingBuild,
-        cards: allCards,
+        cards: [...existingBuild.cards, ...overlappingBuild.cards, card],
         value: newBuildValue,
         owner: 'player' as const
       };
       setBuilds(builds.filter(b => b.id !== overlappingBuild.id && b.id !== existingBuild.id).concat(updatedBuild));
     } else {
-      // Sort cards by value (big to small)
-      const allCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
       const updatedBuild = {
         ...overlappingBuild,
-        cards: allCards,
+        cards: [...overlappingBuild.cards, card],
         value: newBuildValue,
         owner: 'player' as const
       };
@@ -133,7 +128,8 @@ export const handleNewBuild = (
       );
 
       if (shouldChow) {
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card].sort((a, b) => b.value - a.value));
+        // Add chowing card on top of the matched card
+        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
         const newPlayerHand = [...playerHand];
         newPlayerHand.splice(cardIndex, 1);
@@ -144,7 +140,7 @@ export const handleNewBuild = (
       }
     } else {
       // Handle as chow for values 6 and above
-      setPlayerChowedCards(prev => [...prev, overlappingCard, card].sort((a, b) => b.value - a.value));
+      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
       setTableCards(tableCards.filter(c => c !== overlappingCard));
       const newPlayerHand = [...playerHand];
       newPlayerHand.splice(cardIndex, 1);
@@ -166,19 +162,18 @@ export const handleNewBuild = (
     // Check for existing build with the same value
     const existingBuild = builds.find(b => b.value === buildValue);
     if (existingBuild) {
-      // Add to existing build
+      // Add to existing build, keeping original order
       const updatedBuild = {
         ...existingBuild,
-        cards: [...existingBuild.cards, overlappingCard, card].sort((a, b) => b.value - a.value),
+        cards: [...existingBuild.cards, overlappingCard, card],
         owner: 'player' as const
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
     } else {
-      // Create new build with cards sorted (big to small)
-      const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value);
+      // Create new build
       const newBuild: BuildType = {
         id: Date.now(),
-        cards: buildCards,
+        cards: [overlappingCard, card],
         value: buildValue,
         position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
         owner: 'player' as const
