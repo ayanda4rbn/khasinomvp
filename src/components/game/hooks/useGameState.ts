@@ -17,11 +17,12 @@ export const calculateScore = (chowedCards: Card[]): GameScore => {
   score.total += score.aces; // 1 point per ace
   if (score.mummy) score.total += 2; // 2 points for mummy
   if (score.spy) score.total += 1; // 1 point for spy
-
+  
   return score;
 };
 
 export const determineWinner = (playerScore: GameScore, aiScore: GameScore): GameSummary => {
+  // First calculate base scores without the card count bonuses
   let playerTotal = playerScore.total;
   let aiTotal = aiScore.total;
 
@@ -30,24 +31,12 @@ export const determineWinner = (playerScore: GameScore, aiScore: GameScore): Gam
     playerTotal += 2;
   } else if (aiScore.cardsCount > playerScore.cardsCount) {
     aiTotal += 2;
-  } else if (playerScore.cardsCount === aiScore.cardsCount) {
-    // Tie for cards - 1 point each
-    playerTotal += 1;
-    aiTotal += 1;
   }
 
-  // Spades scoring (2 points for more than 5, 1 point each for 5)
-  if (playerScore.spadesCount > 5) {
-    playerTotal += 2;
-  } else if (aiScore.spadesCount > 5) {
-    aiTotal += 2;
-  } else if (playerScore.spadesCount === 5 && aiScore.spadesCount === 5) {
-    // Both have exactly 5 spades
+  // Most spades (1 point)
+  if (playerScore.spadesCount > aiScore.spadesCount) {
     playerTotal += 1;
-    aiTotal += 1;
-  } else if (playerScore.spadesCount === 5) {
-    playerTotal += 1;
-  } else if (aiScore.spadesCount === 5) {
+  } else if (aiScore.spadesCount > playerScore.spadesCount) {
     aiTotal += 1;
   }
 
@@ -79,10 +68,22 @@ export const useGameState = (
   const [playerChowedCards, setPlayerChowedCards] = useState<Card[]>([]);
   const [aiChowedCards, setAiChowedCards] = useState<Card[]>([]);
   const [gameSummary, setGameSummary] = useState<GameSummary | null>(null);
+  const [lastChowedBy, setLastChowedBy] = useState<'player' | 'ai'>(playerGoesFirst ? 'player' : 'ai');
 
   const calculateGameSummary = () => {
-    const playerScore = calculateScore(playerChowedCards);
-    const aiScore = calculateScore(aiChowedCards);
+    // First, add any remaining table cards to the last player who chowed
+    let finalPlayerChowedCards = [...playerChowedCards];
+    let finalAiChowedCards = [...aiChowedCards];
+
+    if (lastChowedBy === 'player') {
+      finalPlayerChowedCards = [...finalPlayerChowedCards, ...tableCards];
+    } else {
+      finalAiChowedCards = [...finalAiChowedCards, ...tableCards];
+    }
+
+    // Calculate final scores with the updated chowed cards
+    const playerScore = calculateScore(finalPlayerChowedCards);
+    const aiScore = calculateScore(finalAiChowedCards);
     const summary = determineWinner(playerScore, aiScore);
     setGameSummary(summary);
     setShowGameSummary(true);
@@ -134,6 +135,8 @@ export const useGameState = (
     setAiChowedCards,
     gameSummary,
     calculateGameSummary,
-    dealNewRound
+    dealNewRound,
+    lastChowedBy,
+    setLastChowedBy
   };
 };

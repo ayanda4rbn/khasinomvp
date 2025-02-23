@@ -37,7 +37,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     initialDeck
   );
   const [hasPlayedCard, setHasPlayedCard] = useState(false);
-  const [lastChowedBy, setLastChowedBy] = useState<'player' | 'ai'>(playerGoesFirst ? 'player' : 'ai');
 
   const handleEndTurn = () => {
     if (!hasPlayedCard) return;
@@ -75,9 +74,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   useEffect(() => {
     if (gameState.playerChowedCards.length > 0) {
-      setLastChowedBy('player');
+      gameState.setLastChowedBy('player');
     } else if (gameState.aiChowedCards.length > 0) {
-      setLastChowedBy('ai');
+      gameState.setLastChowedBy('ai');
     }
   }, [gameState.playerChowedCards.length, gameState.aiChowedCards.length]);
 
@@ -86,7 +85,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gameState.playerHand.length === 0 && 
         gameState.aiHand.length === 0) {
       if (gameState.tableCards.length > 0) {
-        if (lastChowedBy === 'player') {
+        if (gameState.lastChowedBy === 'player') {
           gameState.setPlayerChowedCards(prev => [...prev, ...gameState.tableCards]);
         } else {
           gameState.setAiChowedCards(prev => [...prev, ...gameState.tableCards]);
