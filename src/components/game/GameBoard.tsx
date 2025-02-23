@@ -73,7 +73,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [gameState.playerHand.length, gameState.aiHand.length, gameState.currentRound]);
 
-  // Update lastChowedBy whenever a player makes a capture
   useEffect(() => {
     if (gameState.playerChowedCards.length > 0) {
       setLastChowedBy('player');
@@ -82,12 +81,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [gameState.playerChowedCards.length, gameState.aiChowedCards.length]);
 
-  // Check for game end and assign remaining cards
   useEffect(() => {
     if (gameState.currentRound === 2 && 
         gameState.playerHand.length === 0 && 
         gameState.aiHand.length === 0) {
-      // Give remaining table cards to the last player who made a capture
       if (gameState.tableCards.length > 0) {
         if (lastChowedBy === 'player') {
           gameState.setPlayerChowedCards(prev => [...prev, ...gameState.tableCards]);
@@ -97,7 +94,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gameState.setTableCards([]);
       }
       
-      // Calculate final scores after all cards have been assigned
       setTimeout(() => {
         gameState.calculateGameSummary();
       }, 100);
@@ -113,7 +109,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
     
-    // Find if we're dropping on a build
     const overlappingBuild = gameState.builds.find(build => {
       const buildX = build.position.x;
       const buildY = build.position.y;
@@ -128,7 +123,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       );
     });
 
-    // Find if we're dropping on a loose card
     const overlappingCard = gameState.tableCards.find(existingCard => {
       const existingX = existingCard.tableX || 0;
       const existingY = existingCard.tableY || 0;
@@ -171,7 +165,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gameState.setBuilds,
         gameState.setPlayerHand,
         gameState.setIsPlayerTurn,
-        gameState.builds
+        gameState.builds,
+        gameState.setPlayerChowedCards  // Add the missing argument here
       )) {
         setHasPlayedCard(true);
         return;
