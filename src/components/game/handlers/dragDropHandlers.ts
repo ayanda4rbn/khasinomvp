@@ -22,8 +22,8 @@ export const handleBuildCapture = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ) => {
-  // Sort cards before adding to chowed cards
-  const sortedCards = [...overlappingBuild.cards, card].sort((a, b) => a.value - b.value);
+  // Sort cards before adding to chowed cards (big to small)
+  const sortedCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
   setPlayerChowedCards(prev => [...prev, ...sortedCards]);
   setBuilds(builds.filter(build => build.id !== overlappingBuild.id));
 
@@ -34,7 +34,7 @@ export const handleBuildCapture = (
   toast.success("You captured a build!");
 };
 
-export const handleBuildAugment = (
+export const handleBuildAugment = async (
   card: Card,
   overlappingBuild: BuildType,
   playerHand: Card[],
@@ -43,29 +43,62 @@ export const handleBuildAugment = (
   setBuilds: (builds: BuildType[]) => void,
   setPlayerHand: (hand: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
-  builds: BuildType[]
-): boolean => {
+  builds: BuildType[],
+  setPlayerChowedCards: React.Dispatch<React.SetStateAction<Card[]>>
+): Promise<boolean> => {
   if (overlappingBuild.owner === 'player') {
     toast.error("You cannot augment your own build!");
     return false;
   }
 
+  // If the card value matches the build value and it's 5 or less
+  if (card.value === overlappingBuild.value && card.value <= 5) {
+    const shouldChow = window.confirm(
+      `Do you want to chow the ${card.value} (OK) or augment the build (Cancel)?`
+    );
+
+    if (shouldChow) {
+      // Handle as chow
+      setPlayerChowedCards(prev => [...prev, ...overlappingBuild.cards, card]);
+      setBuilds(builds.filter(b => b.id !== overlappingBuild.id));
+      const newPlayerHand = [...playerHand];
+      newPlayerHand.splice(cardIndex, 1);
+      setPlayerHand(newPlayerHand);
+      setIsPlayerTurn(false);
+      return true;
+    }
+  }
+
   const newBuildValue = overlappingBuild.value + card.value;
-  if (newBuildValue <= 10 && newBuildValue < overlappingBuild.value * 2 && playerHand.some(c => c.value === newBuildValue)) {
+  if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
     if (overlappingBuild.owner === 'ai' && hasPlayerBuild) {
       toast.error("You cannot augment when you have an existing build!");
       return false;
     }
 
-    // Sort cards by value in ascending order
-    const allCards = [...overlappingBuild.cards, card].sort((a, b) => a.value - b.value);
-    const updatedBuild: BuildType = {
-      ...overlappingBuild,
-      cards: allCards,
-      value: newBuildValue,
-      owner: 'player' as const
-    };
-    setBuilds(builds.map(b => b.id === overlappingBuild?.id ? updatedBuild : b));
+    // Check if there's an existing build with the same value
+    const existingBuild = builds.find(b => b.value === overlappingBuild.value && b.id !== overlappingBuild.id);
+    if (existingBuild) {
+      // Combine the builds
+      const allCards = [...existingBuild.cards, ...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
+      const updatedBuild = {
+        ...existingBuild,
+        cards: allCards,
+        value: newBuildValue,
+        owner: 'player' as const
+      };
+      setBuilds(builds.filter(b => b.id !== overlappingBuild.id && b.id !== existingBuild.id).concat(updatedBuild));
+    } else {
+      // Sort cards by value (big to small)
+      const allCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
+      const updatedBuild = {
+        ...overlappingBuild,
+        cards: allCards,
+        value: newBuildValue,
+        owner: 'player' as const
+      };
+      setBuilds(builds.map(b => b.id === overlappingBuild.id ? updatedBuild : b));
+    }
 
     const newPlayerHand = [...playerHand];
     newPlayerHand.splice(cardIndex, 1);
@@ -91,16 +124,35 @@ export const handleNewBuild = (
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {
-  // Handle chowing of matching values (including 6 and above)
+  // Check for matching values
   if (card.value === overlappingCard.value) {
-    setPlayerChowedCards(prev => [...prev, overlappingCard, card].sort((a, b) => a.value - b.value));
-    setTableCards(tableCards.filter(c => c !== overlappingCard));
-    const newPlayerHand = [...playerHand];
-    newPlayerHand.splice(cardIndex, 1);
-    setPlayerHand(newPlayerHand);
-    setIsPlayerTurn(false);
-    toast.success(`Chowed ${card.value}`);
-    return true;
+    // For values 5 and below, show choice dialog if player has the sum value
+    if (card.value <= 5 && playerHand.some(c => c.value === card.value * 2)) {
+      const shouldChow = window.confirm(
+        `Do you want to chow the ${card.value} (OK) or build a ${card.value * 2} (Cancel)?`
+      );
+
+      if (shouldChow) {
+        setPlayerChowedCards(prev => [...prev, overlappingCard, card].sort((a, b) => b.value - a.value));
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+        setIsPlayerTurn(false);
+        toast.success(`Chowed ${card.value}`);
+        return true;
+      }
+    } else {
+      // Handle as chow for values 6 and above
+      setPlayerChowedCards(prev => [...prev, overlappingCard, card].sort((a, b) => b.value - a.value));
+      setTableCards(tableCards.filter(c => c !== overlappingCard));
+      const newPlayerHand = [...playerHand];
+      newPlayerHand.splice(cardIndex, 1);
+      setPlayerHand(newPlayerHand);
+      setIsPlayerTurn(false);
+      toast.success(`Chowed ${card.value}`);
+      return true;
+    }
   }
 
   const buildValue = card.value + overlappingCard.value;
@@ -111,16 +163,29 @@ export const handleNewBuild = (
   }
 
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    // Always sort cards by value (smaller cards on top)
-    const buildCards = [overlappingCard, card].sort((a, b) => a.value - b.value);
-    const newBuild: BuildType = {
-      id: Date.now(),
-      cards: buildCards,
-      value: buildValue,
-      position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
-      owner: 'player' as const
-    };
-    setBuilds([...builds, newBuild]);
+    // Check for existing build with the same value
+    const existingBuild = builds.find(b => b.value === buildValue);
+    if (existingBuild) {
+      // Add to existing build
+      const updatedBuild = {
+        ...existingBuild,
+        cards: [...existingBuild.cards, overlappingCard, card].sort((a, b) => b.value - a.value),
+        owner: 'player' as const
+      };
+      setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
+    } else {
+      // Create new build with cards sorted (big to small)
+      const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value);
+      const newBuild: BuildType = {
+        id: Date.now(),
+        cards: buildCards,
+        value: buildValue,
+        position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
+        owner: 'player' as const
+      };
+      setBuilds([...builds, newBuild]);
+    }
+    
     setTableCards(tableCards.filter(c => c !== overlappingCard));
     const newPlayerHand = [...playerHand];
     newPlayerHand.splice(cardIndex, 1);

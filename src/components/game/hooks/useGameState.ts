@@ -36,14 +36,18 @@ export const determineWinner = (playerScore: GameScore, aiScore: GameScore): Gam
     aiTotal += 1;
   }
 
-  // Most spades (1 point each)
-  if (playerScore.spadesCount > aiScore.spadesCount) {
+  // Spades scoring (2 points for more than 5, 1 point each for 5)
+  if (playerScore.spadesCount > 5) {
+    playerTotal += 2;
+  } else if (aiScore.spadesCount > 5) {
+    aiTotal += 2;
+  } else if (playerScore.spadesCount === 5 && aiScore.spadesCount === 5) {
+    // Both have exactly 5 spades
     playerTotal += 1;
-  } else if (aiScore.spadesCount > playerScore.spadesCount) {
     aiTotal += 1;
-  } else if (playerScore.spadesCount === aiScore.spadesCount) {
-    // Tie for spades - 1 point each
+  } else if (playerScore.spadesCount === 5) {
     playerTotal += 1;
+  } else if (aiScore.spadesCount === 5) {
     aiTotal += 1;
   }
 
