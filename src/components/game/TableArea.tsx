@@ -16,9 +16,9 @@ interface TableAreaProps {
   onEndTurn: () => void;
   hasPlayedCard: boolean;
   playerHand: Card[];
-  setPlayerHand: (hand: Card[]) => void;
+  setPlayerHand: (cards: Card[]) => void;
   setTableCards: (cards: Card[]) => void;
-  setPlayerChowedCards: React.Dispatch<React.SetStateAction<Card[]>>;
+  setPlayerChowedCards: (cards: Card[]) => void;
   setIsPlayerTurn: (isPlayerTurn: boolean) => void;
 }
 
@@ -91,10 +91,12 @@ export const TableArea: React.FC<TableAreaProps> = ({
     if (cardFromHand && overlappingCard) {
       // Handle matching values (chow)
       if (cardFromHand.value === overlappingCard.value) {
-        const newChowedCards = [...playerChowedCards, overlappingCard, cardFromHand];
+        const newChowedCards: Card[] = [...playerChowedCards, overlappingCard, cardFromHand];
         setPlayerChowedCards(newChowedCards);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        setPlayerHand(playerHand.filter((_, i) => i !== Number(handCardIndex)));
+        const newTableCards: Card[] = tableCards.filter(c => c !== overlappingCard);
+        setTableCards(newTableCards);
+        const newPlayerHand: Card[] = playerHand.filter((_, i) => i !== Number(handCardIndex));
+        setPlayerHand(newPlayerHand);
         setIsPlayerTurn(false);
         toast.success("Cards chowed!");
         return;

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/types/game';
 import { TableArea } from './TableArea';
@@ -263,4 +264,4 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   );
 };
 
-export default Game;
+export { GameBoard };
