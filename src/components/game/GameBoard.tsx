@@ -21,7 +21,7 @@ interface GameBoardProps {
   setCurrentRound: React.Dispatch<React.SetStateAction<1 | 2>>;
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ 
+const GameBoard = ({ 
   playerGoesFirst, 
   tableCards: initialTableCards, 
   playerHand: initialPlayerHand,
@@ -29,7 +29,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   deck: initialDeck,
   currentRound,
   setCurrentRound
-}) => {
+}: GameBoardProps) => {
   const gameState = useGameState(
     playerGoesFirst,
     initialTableCards,
@@ -166,7 +166,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         gameState.setPlayerHand,
         gameState.setIsPlayerTurn,
         gameState.builds,
-        gameState.setPlayerChowedCards  // Add the missing argument here
+        gameState.setPlayerChowedCards
       )) {
         setHasPlayedCard(true);
         return;
@@ -264,4 +264,4 @@ const GameBoard: React.FC<GameBoardProps> = ({
   );
 };
 
-export default GameBoard;
+export { GameBoard };
