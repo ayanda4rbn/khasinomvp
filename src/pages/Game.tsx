@@ -101,7 +101,7 @@ const Game = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-casino-green px-2 md:px-4 py-2 md:py-4 flex flex-col">
       {!gameMode && (
         <GameModeSelection onSelectMode={setGameMode} />
       )}
@@ -122,7 +122,7 @@ const Game = () => {
           setCurrentRound={setCurrentRound}
         />
       )}
-    </>
+    </div>
   );
 };
 

@@ -42,13 +42,13 @@ export const TableArea: React.FC<TableAreaProps> = ({
   };
 
   return (
-    <div className="flex items-start w-full max-w-[880px]">
+    <div className="flex flex-col md:flex-row items-center w-full max-w-[880px] gap-4 px-2">
       {/* Left side area for chowed cards */}
-      <div className="flex flex-col justify-between h-[300px] mr-8">
+      <div className="flex flex-row md:flex-col justify-between w-full md:w-auto md:h-[300px] gap-4 md:mr-8">
         {/* AI's chowed cards */}
         <div className="flex items-center">
-          <span className="text-white mr-2 whitespace-nowrap">AI chowed cards</span>
-          <div className="w-12 h-16 border-2 border-casino-gold rounded-lg relative">
+          <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">AI chowed cards</span>
+          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-casino-gold rounded-lg relative">
             {aiChowedCards.map((card, index) => (
               <div 
                 key={`ai-chowed-${index}`}
@@ -64,10 +64,11 @@ export const TableArea: React.FC<TableAreaProps> = ({
             ))}
           </div>
         </div>
+
         {/* Player's chowed cards */}
         <div className="flex items-center">
-          <span className="text-white mr-2 whitespace-nowrap">{playerName}'s chowed cards</span>
-          <div className="w-12 h-16 border-2 border-casino-gold rounded-lg relative">
+          <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">{playerName}'s chowed</span>
+          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-casino-gold rounded-lg relative">
             {playerChowedCards.map((card, index) => (
               <div 
                 key={`player-chowed-${index}`}
@@ -83,11 +84,12 @@ export const TableArea: React.FC<TableAreaProps> = ({
             ))}
           </div>
         </div>
+
         {/* End Turn Button */}
         {isPlayerTurn && (
           <Button 
             onClick={onEndTurn}
-            className="mt-4"
+            className="hidden md:block mt-4"
             disabled={!hasPlayedCard}
           >
             End Turn
@@ -97,7 +99,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
       {/* Main Table */}
       <div 
-        className="w-[550px] h-[300px] bg-[#0F8A3C] rounded-lg relative"
+        className="w-full md:w-[550px] h-[200px] md:h-[300px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
@@ -107,8 +109,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
             key={`table-${index}`}
             style={{
               position: 'absolute',
-              left: card.tableX || 0,
-              top: card.tableY || 0,
+              left: card.tableX ? `${(card.tableX / 550) * 100}%` : 0,
+              top: card.tableY ? `${(card.tableY / 300) * 100}%` : 0,
             }}
             onClick={() => handleCardClick(card)}
           >
@@ -126,8 +128,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
             className="relative"
             style={{
               position: 'absolute',
-              left: build.position.x,
-              top: build.position.y,
+              left: `${(build.position.x / 550) * 100}%`,
+              top: `${(build.position.y / 300) * 100}%`,
             }}
           >
             {/* Stack of cards in the build */}
@@ -145,16 +147,27 @@ export const TableArea: React.FC<TableAreaProps> = ({
               </div>
             ))}
             {/* Build value indicator */}
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-sm font-bold z-50">
+            <div className="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold z-50">
               {build.value}
             </div>
             {/* Owner indicator */}
-            <div className="absolute -bottom-2 -right-2 text-xs text-white bg-black/50 px-1 rounded">
+            <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">
               {build.owner === 'player' ? playerName : 'AI'}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Mobile End Turn Button */}
+      {isPlayerTurn && (
+        <Button 
+          onClick={onEndTurn}
+          className="md:hidden w-full mt-2"
+          disabled={!hasPlayedCard}
+        >
+          End Turn
+        </Button>
+      )}
     </div>
   );
 };

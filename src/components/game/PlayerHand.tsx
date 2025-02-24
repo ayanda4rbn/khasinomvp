@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -16,9 +17,9 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
   onDragStart,
 }) => {
   return (
-    <div className="mt-auto">
-      <p className="text-white mb-1">{playerName}'s Cards: {cards.length}</p>
-      <div className="flex flex-wrap justify-center gap-0.5">
+    <div className="mt-auto w-full">
+      <p className="text-white mb-1 text-sm md:text-base">{playerName}'s Cards: {cards.length}</p>
+      <div className="flex flex-wrap justify-center gap-0.5 max-w-full overflow-x-auto px-2 pb-2">
         {cards.map((card, index) => (
           <CardComponent
             key={`hand-${index}`}
