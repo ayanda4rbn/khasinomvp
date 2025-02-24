@@ -30,15 +30,38 @@ export const TableArea: React.FC<TableAreaProps> = ({
   hasPlayedCard,
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+  const [isDraggingTable, setIsDraggingTable] = useState(false);
 
   const handleCardClick = (card: Card) => {
     if (!isPlayerTurn) return;
+
+    // Check if clicking cards with the same value
+    if (selectedCards.length > 0 && selectedCards[0].value === card.value) {
+      // If we don't have a matching sum card, this should be a chow
+      const sumValue = card.value;
+      setSelectedCards([]);
+      // Trigger chow logic here if needed
+      return;
+    }
 
     if (selectedCards.includes(card)) {
       setSelectedCards(selectedCards.filter(c => c !== card));
     } else {
       setSelectedCards([...selectedCards, card]);
     }
+  };
+
+  const handleTableCardDragStart = (e: React.DragEvent<HTMLDivElement>, card: Card) => {
+    if (!isPlayerTurn) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData('text/table-card', JSON.stringify(card));
+    setIsDraggingTable(true);
+  };
+
+  const handleTableCardDragEnd = () => {
+    setIsDraggingTable(false);
   };
 
   return (
@@ -103,23 +126,31 @@ export const TableArea: React.FC<TableAreaProps> = ({
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {/* Regular table cards */}
-        {tableCards.map((card, index) => (
-          <div
-            key={`table-${index}`}
-            style={{
-              position: 'absolute',
-              left: card.tableX ? `${(card.tableX / 550) * 100}%` : 0,
-              top: card.tableY ? `${(card.tableY / 300) * 100}%` : 0,
-            }}
-            onClick={() => handleCardClick(card)}
-          >
-            <CardComponent
-              card={{ ...card, faceUp: true }}
-              isSelected={selectedCards.includes(card)}
-            />
-          </div>
-        ))}
+        {/* Grid for card placement */}
+        <div className="absolute inset-0 grid grid-cols-6 grid-rows-4 gap-1 p-2">
+          {/* Regular table cards */}
+          {tableCards.map((card, index) => (
+            <div
+              key={`table-${index}`}
+              className="relative"
+              draggable={isPlayerTurn}
+              onDragStart={(e) => handleTableCardDragStart(e, card)}
+              onDragEnd={handleTableCardDragEnd}
+              onClick={() => handleCardClick(card)}
+              style={{
+                gridColumn: Math.floor((card.tableX || 0) / (550/6)) + 1,
+                gridRow: Math.floor((card.tableY || 0) / (300/4)) + 1,
+                zIndex: isDraggingTable ? 1000 : 1
+              }}
+            >
+              <CardComponent
+                card={{ ...card, faceUp: true }}
+                isSelected={selectedCards.includes(card)}
+                isDraggable={isPlayerTurn}
+              />
+            </div>
+          ))}
+        </div>
 
         {/* Builds displayed as card stacks with value indicators */}
         {builds.map((build, buildIndex) => (
@@ -130,6 +161,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
               position: 'absolute',
               left: `${(build.position.x / 550) * 100}%`,
               top: `${(build.position.y / 300) * 100}%`,
+              zIndex: 2
             }}
           >
             {/* Stack of cards in the build */}
@@ -140,7 +172,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 style={{
                   top: `${cardIndex * -2}px`,
                   left: `${cardIndex * 2}px`,
-                  zIndex: cardIndex,
+                  zIndex: cardIndex + 10,
                 }}
               >
                 <CardComponent card={{ ...card, faceUp: true }} />
