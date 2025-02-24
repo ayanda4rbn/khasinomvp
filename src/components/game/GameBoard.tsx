@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/types/game';
 import { TableArea } from './TableArea';
@@ -21,7 +20,7 @@ interface GameBoardProps {
   setCurrentRound: React.Dispatch<React.SetStateAction<1 | 2>>;
 }
 
-const GameBoard = ({ 
+export const GameBoard: React.FC<GameBoardProps> = ({ 
   playerGoesFirst, 
   tableCards: initialTableCards, 
   playerHand: initialPlayerHand,
@@ -29,7 +28,7 @@ const GameBoard = ({
   deck: initialDeck,
   currentRound,
   setCurrentRound
-}: GameBoardProps) => {
+}) => {
   const gameState = useGameState(
     playerGoesFirst,
     initialTableCards,
@@ -166,7 +165,7 @@ const GameBoard = ({
         gameState.setPlayerHand,
         gameState.setIsPlayerTurn,
         gameState.builds,
-        gameState.setPlayerChowedCards
+        gameState.setPlayerChowedCards  // Add the missing argument here
       )) {
         setHasPlayedCard(true);
         return;
@@ -216,7 +215,7 @@ const GameBoard = ({
   };
 
   return (
-    <div className="min-h-screen bg-casino-green px-2 md:px-4 py-2 md:py-4 flex flex-col">
+    <div className="h-screen bg-casino-green p-4 flex flex-col">
       <GameHeader 
         showLeaveDialog={gameState.showLeaveDialog}
         setShowLeaveDialog={gameState.setShowLeaveDialog}
@@ -237,11 +236,6 @@ const GameBoard = ({
           isPlayerTurn={gameState.isPlayerTurn}
           onEndTurn={handleEndTurn}
           hasPlayedCard={hasPlayedCard}
-          playerHand={gameState.playerHand}
-          setPlayerHand={gameState.setPlayerHand}
-          setTableCards={gameState.setTableCards}
-          setPlayerChowedCards={gameState.setPlayerChowedCards}
-          setIsPlayerTurn={gameState.setIsPlayerTurn}
         />
       </div>
 
@@ -263,5 +257,3 @@ const GameBoard = ({
     </div>
   );
 };
-
-export { GameBoard };
