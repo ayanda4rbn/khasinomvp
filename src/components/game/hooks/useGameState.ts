@@ -26,17 +26,25 @@ export const determineWinner = (playerScore: GameScore, aiScore: GameScore): Gam
   let playerTotal = playerScore.total;
   let aiTotal = aiScore.total;
 
-  // Most cards (2 points)
+  // Most cards (2 points, 1 each if tie)
   if (playerScore.cardsCount > aiScore.cardsCount) {
     playerTotal += 2;
   } else if (aiScore.cardsCount > playerScore.cardsCount) {
     aiTotal += 2;
+  } else {
+    // Tie for cards - 1 point each
+    playerTotal += 1;
+    aiTotal += 1;
   }
 
-  // Most spades (1 point)
+  // Most spades (2 points, 1 each if tie)
   if (playerScore.spadesCount > aiScore.spadesCount) {
-    playerTotal += 1;
+    playerTotal += 2;
   } else if (aiScore.spadesCount > playerScore.spadesCount) {
+    aiTotal += 2;
+  } else {
+    // Tie for spades - 1 point each
+    playerTotal += 1;
     aiTotal += 1;
   }
 
