@@ -91,12 +91,9 @@ export const TableArea: React.FC<TableAreaProps> = ({
     if (cardFromHand && overlappingCard) {
       // Handle matching values (chow)
       if (cardFromHand.value === overlappingCard.value) {
-        const newChowedCards: Card[] = [...playerChowedCards, overlappingCard, cardFromHand];
-        setPlayerChowedCards(newChowedCards);
-        const newTableCards: Card[] = tableCards.filter(c => c !== overlappingCard);
-        setTableCards(newTableCards);
-        const newPlayerHand: Card[] = playerHand.filter((_, i) => i !== Number(handCardIndex));
-        setPlayerHand(newPlayerHand);
+        setPlayerChowedCards([...playerChowedCards, overlappingCard, cardFromHand]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+        setPlayerHand(playerHand.filter((_, i) => i !== Number(handCardIndex)));
         setIsPlayerTurn(false);
         toast.success("Cards chowed!");
         return;
@@ -118,15 +115,15 @@ export const TableArea: React.FC<TableAreaProps> = ({
           owner: 'player'
         };
         
-        setTableCards(prev => prev.filter(c => c !== draggedTableCard && c !== overlappingCard));
-        setPlayerHand(prev => prev.filter((_, i) => i !== Number(handCardIndex)));
+        setTableCards(tableCards.filter(c => c !== draggedTableCard && c !== overlappingCard));
+        setPlayerHand(playerHand.filter((_, i) => i !== Number(handCardIndex)));
         builds?.push(newBuild);
         toast.success("Build created!");
         return;
       }
     }
 
-    // Default card placement with random position
+    // Default card placement
     if (cardFromHand) {
       const { x: newX, y: newY } = generateRandomPosition();
       const newCard: Card = {

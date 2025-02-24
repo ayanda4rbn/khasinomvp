@@ -21,7 +21,7 @@ interface GameBoardProps {
   setCurrentRound: React.Dispatch<React.SetStateAction<1 | 2>>;
 }
 
-export const GameBoard: React.FC<GameBoardProps> = ({ 
+const GameBoard: React.FC<GameBoardProps> = ({ 
   playerGoesFirst, 
   tableCards: initialTableCards, 
   playerHand: initialPlayerHand,
