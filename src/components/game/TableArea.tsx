@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -92,7 +91,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
     if (cardFromHand && overlappingCard) {
       // Handle matching values (chow)
       if (cardFromHand.value === overlappingCard.value) {
-        setPlayerChowedCards(prev => [...prev, overlappingCard, cardFromHand]);
+        const newChowedCards = [...playerChowedCards, overlappingCard, cardFromHand];
+        setPlayerChowedCards(newChowedCards);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
         setPlayerHand(playerHand.filter((_, i) => i !== Number(handCardIndex)));
         setIsPlayerTurn(false);

@@ -215,7 +215,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   return (
-    <div className="h-screen bg-casino-green p-4 flex flex-col">
+    <div className="min-h-screen bg-casino-green px-2 md:px-4 py-2 md:py-4 flex flex-col">
       <GameHeader 
         showLeaveDialog={gameState.showLeaveDialog}
         setShowLeaveDialog={gameState.setShowLeaveDialog}
@@ -236,6 +236,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           isPlayerTurn={gameState.isPlayerTurn}
           onEndTurn={handleEndTurn}
           hasPlayedCard={hasPlayedCard}
+          playerHand={gameState.playerHand}
+          setPlayerHand={gameState.setPlayerHand}
+          setTableCards={gameState.setTableCards}
+          setPlayerChowedCards={gameState.setPlayerChowedCards}
+          setIsPlayerTurn={gameState.setIsPlayerTurn}
         />
       </div>
 
@@ -257,3 +262,5 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     </div>
   );
 };
+
+export default Game;
