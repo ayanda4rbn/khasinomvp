@@ -90,9 +90,52 @@ export const handleNewBuild = (
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {
-  // Check for matching values - always chow if values match
+  // Check for matching values
   if (card.value === overlappingCard.value) {
-    // If player has an active build, matching cards must chow
+    // Check if the matched value could be used to build an existing build value
+    const existingBuildValues = builds
+      .filter(b => b.owner === 'player')
+      .map(b => b.value);
+    
+    const canBuildExisting = existingBuildValues.some(value => card.value * 2 === value);
+    
+    if (canBuildExisting) {
+      const shouldChow = window.confirm(
+        `Do you want to chow the ${card.value} (OK) or use it to build ${card.value * 2} (Cancel)?`
+      );
+
+      if (shouldChow) {
+        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+        setIsPlayerTurn(false);
+        toast.success(`Chowed ${card.value}`);
+        return true;
+      } else {
+        // Find the existing build to add to
+        const targetBuild = builds.find(b => b.value === card.value * 2);
+        if (targetBuild) {
+          const sortedNewCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
+          const updatedBuild = {
+            ...targetBuild,
+            cards: [...targetBuild.cards, ...sortedNewCards],
+            owner: 'player' as const
+          };
+          setBuilds(builds.map(b => b.id === targetBuild.id ? updatedBuild : b));
+          setTableCards(tableCards.filter(c => c !== overlappingCard));
+          const newPlayerHand = [...playerHand];
+          newPlayerHand.splice(cardIndex, 1);
+          setPlayerHand(newPlayerHand);
+          setIsPlayerTurn(false);
+          toast.success("Added to existing build!");
+          return true;
+        }
+      }
+    }
+    
+    // If player has an active build and we're not building with the matched cards, must chow
     if (hasPlayerBuild || card.value > 5) {
       setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
       setTableCards(tableCards.filter(c => c !== overlappingCard));
