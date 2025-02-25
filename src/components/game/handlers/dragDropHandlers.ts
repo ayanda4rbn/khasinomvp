@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -47,9 +48,12 @@ export const handleBuildAugment = async (
   // Allow augmenting your own build
   const newBuildValue = overlappingBuild.value + card.value;
   if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
+    // Sort cards by value in descending order (largest first)
+    const sortedCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
+    
     const updatedBuild = {
       ...overlappingBuild,
-      cards: [...overlappingBuild.cards, card],
+      cards: sortedCards,
       value: newBuildValue,
       owner: 'player' as const
     };
@@ -136,10 +140,8 @@ export const handleNewBuild = (
   }
 
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    // Create new build with smaller card on top
-    const buildCards = overlappingCard.value < card.value 
-      ? [card, overlappingCard]  // overlappingCard is smaller, it goes on top
-      : [overlappingCard, card]; // card is smaller, it goes on top
+    // Sort cards by value in descending order (largest first)
+    const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
     
     const newBuild: BuildType = {
       id: Date.now(),
