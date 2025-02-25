@@ -48,12 +48,19 @@ export const handleBuildAugment = async (
   // Allow augmenting your own build
   const newBuildValue = overlappingBuild.value + card.value;
   if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
-    // Sort cards by value in descending order (largest first)
-    const sortedCards = [...overlappingBuild.cards, card].sort((a, b) => b.value - a.value);
+    // Sort only the new combination being added
+    const sortedNewCards = [overlappingBuild.cards[overlappingBuild.cards.length - 1], card]
+      .sort((a, b) => b.value - a.value);
+    
+    // Remove the last card from the existing build and add the new sorted combination
+    const updatedCards = [
+      ...overlappingBuild.cards.slice(0, -1),
+      ...sortedNewCards
+    ];
     
     const updatedBuild = {
       ...overlappingBuild,
-      cards: sortedCards,
+      cards: updatedCards,
       value: newBuildValue,
       owner: 'player' as const
     };
@@ -128,19 +135,32 @@ export const handleNewBuild = (
 
   const buildValue = card.value + overlappingCard.value;
   
-  // Can't create a new build if player already has one
-  if (hasPlayerBuild) {
-    toast.error("You cannot create a new build when you already have one!");
-    return false;
-  }
+  // Check if there's an existing build with the same value
+  const existingBuild = builds.find(b => b.value === buildValue);
   
-  if (builds.some(b => b.owner === 'ai' && b.value === buildValue)) {
-    toast.error("Cannot build a value that your opponent has already built!");
-    return false;
+  if (existingBuild) {
+    // Sort only the new combination being added
+    const sortedNewCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
+    
+    const updatedBuild = {
+      ...existingBuild,
+      cards: [...existingBuild.cards, ...sortedNewCards],
+      owner: 'player' as const
+    };
+    
+    setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
+    setTableCards(tableCards.filter(c => c !== overlappingCard));
+    const newPlayerHand = [...playerHand];
+    newPlayerHand.splice(cardIndex, 1);
+    setPlayerHand(newPlayerHand);
+    setIsPlayerTurn(false);
+    toast.success("Added to existing build!");
+    return true;
   }
 
+  // No existing build found, create a new one if valid
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    // Sort cards by value in descending order (largest first)
+    // Sort only the initial combination
     const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
     
     const newBuild: BuildType = {
