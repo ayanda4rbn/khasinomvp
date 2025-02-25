@@ -31,16 +31,13 @@ export const TableArea: React.FC<TableAreaProps> = ({
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [isDraggingTable, setIsDraggingTable] = useState(false);
+  const [potentialDropTarget, setPotentialDropTarget] = useState<Card | null>(null);
 
   const handleCardClick = (card: Card) => {
     if (!isPlayerTurn) return;
 
-    // Check if clicking cards with the same value
     if (selectedCards.length > 0 && selectedCards[0].value === card.value) {
-      // If we don't have a matching sum card, this should be a chow
-      const sumValue = card.value;
       setSelectedCards([]);
-      // Trigger chow logic here if needed
       return;
     }
 
@@ -62,6 +59,30 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
   const handleTableCardDragEnd = () => {
     setIsDraggingTable(false);
+    setPotentialDropTarget(null);
+  };
+
+  const handleTableDragOver = (e: React.DragEvent<HTMLDivElement>, card: Card) => {
+    e.preventDefault();
+    setPotentialDropTarget(card);
+  };
+
+  const handleTableDragLeave = () => {
+    setPotentialDropTarget(null);
+  };
+
+  const isCardOverlapping = (x: number, y: number, existingCard: Card) => {
+    const cardWidth = 80; // Width of card including padding
+    const cardHeight = 112; // Height of card including padding
+    const existingX = existingCard.tableX || 0;
+    const existingY = existingCard.tableY || 0;
+
+    return (
+      x < existingX + cardWidth &&
+      x + cardWidth > existingX &&
+      y < existingY + cardHeight &&
+      y + cardHeight > existingY
+    );
   };
 
   return (
@@ -122,43 +143,43 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
       {/* Main Table */}
       <div 
-        className="w-full md:w-[550px] h-[200px] md:h-[300px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
+        className="w-full md:w-[550px] h-[200px] md:h-[300px] bg-[#0F8A3C] rounded-lg relative"
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {/* Grid for card placement */}
-        <div className="absolute inset-0 grid grid-cols-6 grid-rows-4 gap-1 p-2">
-          {/* Regular table cards */}
-          {tableCards.map((card, index) => (
-            <div
-              key={`table-${index}`}
-              className="relative"
-              draggable={isPlayerTurn}
-              onDragStart={(e) => handleTableCardDragStart(e, card)}
-              onDragEnd={handleTableCardDragEnd}
-              onClick={() => handleCardClick(card)}
-              style={{
-                gridColumn: Math.floor((card.tableX || 0) / (550/6)) + 1,
-                gridRow: Math.floor((card.tableY || 0) / (300/4)) + 1,
-                zIndex: isDraggingTable ? 1000 : 1
-              }}
-            >
-              <CardComponent
-                card={{ ...card, faceUp: true }}
-                isSelected={selectedCards.includes(card)}
-                isDraggable={isPlayerTurn}
-              />
-            </div>
-          ))}
-        </div>
+        {/* Table cards */}
+        {tableCards.map((card, index) => (
+          <div
+            key={`table-${index}`}
+            className={`absolute transition-all duration-200 ${
+              potentialDropTarget === card ? 'ring-4 ring-casino-gold ring-opacity-50' : ''
+            }`}
+            style={{
+              left: card.tableX ? `${(card.tableX / 550) * 100}%` : '0',
+              top: card.tableY ? `${(card.tableY / 300) * 100}%` : '0',
+              zIndex: isDraggingTable ? 1000 : 1,
+            }}
+            draggable={isPlayerTurn}
+            onDragStart={(e) => handleTableCardDragStart(e, card)}
+            onDragEnd={handleTableCardDragEnd}
+            onDragOver={(e) => handleTableDragOver(e, card)}
+            onDragLeave={handleTableDragLeave}
+            onClick={() => handleCardClick(card)}
+          >
+            <CardComponent
+              card={{ ...card, faceUp: true }}
+              isSelected={selectedCards.includes(card)}
+              isDraggable={isPlayerTurn}
+            />
+          </div>
+        ))}
 
         {/* Builds displayed as card stacks with value indicators */}
         {builds.map((build, buildIndex) => (
           <div
             key={`build-${buildIndex}`}
-            className="relative"
+            className="absolute"
             style={{
-              position: 'absolute',
               left: `${(build.position.x / 550) * 100}%`,
               top: `${(build.position.y / 300) * 100}%`,
               zIndex: 2
