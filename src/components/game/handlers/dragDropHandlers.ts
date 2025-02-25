@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -133,38 +132,8 @@ export const handleNewBuild = (
           return true;
         }
       }
-    }
-    
-    // If player has an active build and we're not building with the matched cards, must chow
-    if (hasPlayerBuild || card.value > 5) {
-      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-      setTableCards(tableCards.filter(c => c !== overlappingCard));
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      toast.success(`Chowed ${card.value}`);
-      return true;
-    }
-    
-    // For values 5 and below without active build, show choice dialog
-    if (playerHand.some(c => c.value === card.value * 2)) {
-      const shouldChow = window.confirm(
-        `Do you want to chow the ${card.value} (OK) or build a ${card.value * 2} (Cancel)?`
-      );
-
-      if (shouldChow) {
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-        setIsPlayerTurn(false);
-        toast.success(`Chowed ${card.value}`);
-        return true;
-      }
     } else {
-      // If no build value available, must chow
+      // Always allow chowing matching cards, regardless of having a build
       setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
       setTableCards(tableCards.filter(c => c !== overlappingCard));
       const newPlayerHand = [...playerHand];
@@ -178,32 +147,19 @@ export const handleNewBuild = (
 
   const buildValue = card.value + overlappingCard.value;
   
-  // Check if there's an existing build with the same value
-  const existingBuild = builds.find(b => b.value === buildValue);
+  // Prevent creating new builds or discarding in round 1 if player has an existing build
+  if (hasPlayerBuild) {
+    toast.error("You cannot create a new build when you have an existing build!");
+    return false;
+  }
   
-  if (existingBuild) {
-    // Sort only the new combination being added
-    const sortedNewCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
-    
-    const updatedBuild = {
-      ...existingBuild,
-      cards: [...existingBuild.cards, ...sortedNewCards],
-      owner: 'player' as const
-    };
-    
-    setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
-    setTableCards(tableCards.filter(c => c !== overlappingCard));
-    const newPlayerHand = [...playerHand];
-    newPlayerHand.splice(cardIndex, 1);
-    setPlayerHand(newPlayerHand);
-    setIsPlayerTurn(false);
-    toast.success("Added to existing build!");
-    return true;
+  if (builds.some(b => b.owner === 'ai' && b.value === buildValue)) {
+    toast.error("Cannot build a value that your opponent has already built!");
+    return false;
   }
 
-  // No existing build found, create a new one if valid
+  // Handle creating a new build
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    // Sort only the initial combination
     const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
     
     const newBuild: BuildType = {
@@ -222,6 +178,7 @@ export const handleNewBuild = (
     setIsPlayerTurn(false);
     return true;
   }
+
   toast.error("Invalid build! You must have a card matching the build value.");
   return false;
 };
