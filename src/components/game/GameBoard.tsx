@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/types/game';
 import { TableArea } from './TableArea';
@@ -139,6 +140,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const hasPlayerBuild = gameState.builds.some(build => build.owner === 'player');
     
     if (overlappingBuild) {
+      // First check if this is a capture attempt (equal values)
       if (card.value === overlappingBuild.value) {
         handleBuildCapture(
           card,
@@ -155,6 +157,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         return;
       }
 
+      // Next, check if we're trying to modify the build value (augment)
       if (handleBuildAugment(
         card,
         overlappingBuild,
@@ -165,7 +168,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gameState.setPlayerHand,
         gameState.setIsPlayerTurn,
         gameState.builds,
-        gameState.setPlayerChowedCards  // Add the missing argument here
+        gameState.setPlayerChowedCards
       )) {
         setHasPlayedCard(true);
         return;
