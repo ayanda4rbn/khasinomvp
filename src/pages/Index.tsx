@@ -25,6 +25,10 @@ const Index = () => {
     }
   };
 
+  const handleRulesClick = () => {
+    window.open("https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4", "_blank");
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-between bg-casino-green relative overflow-hidden">
       {/* Background Suit Symbols */}
@@ -43,7 +47,7 @@ const Index = () => {
           <Button 
             variant="ghost" 
             className="text-white hover:text-casino-gold hover:bg-white/10 transition-colors cursor-pointer px-4 py-2 rounded-md"
-            onClick={() => window.open("https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4", "_blank")}
+            onClick={handleRulesClick}
           >
             Rules
           </Button>
