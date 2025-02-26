@@ -1,4 +1,6 @@
 
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 import {
