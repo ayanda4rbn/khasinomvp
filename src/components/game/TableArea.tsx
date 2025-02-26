@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
 
 interface TableAreaProps {
   tableCards: Card[];
@@ -32,67 +31,6 @@ export const TableArea: React.FC<TableAreaProps> = ({
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [isDraggingTable, setIsDraggingTable] = useState(false);
   const [potentialDropTarget, setPotentialDropTarget] = useState<Card | null>(null);
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    
-    // Get table dimensions
-    const tableRect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - tableRect.left;
-    const y = e.clientY - tableRect.top;
-    
-    // Define boundaries
-    const CARD_WIDTH = 48;
-    const CARD_HEIGHT = 64;
-    const PADDING = 20;
-    
-    // Check if the cursor is within the safe drop zone
-    const isWithinBounds = 
-      x >= PADDING &&
-      x <= tableRect.width - CARD_WIDTH - PADDING &&
-      y >= PADDING &&
-      y <= tableRect.height - CARD_HEIGHT - PADDING;
-    
-    // Only allow dropping within bounds
-    if (!isWithinBounds) {
-      e.dataTransfer.dropEffect = 'none';
-    } else {
-      e.dataTransfer.dropEffect = 'move';
-    }
-  };
-
-  const constrainPosition = (x: number, y: number, tableRect: DOMRect) => {
-    const CARD_WIDTH = 48;
-    const CARD_HEIGHT = 64;
-    const PADDING = 20;
-    
-    // Calculate max positions that keep cards within bounds
-    const maxX = tableRect.width - CARD_WIDTH - PADDING;
-    const maxY = tableRect.height - CARD_HEIGHT - PADDING;
-    
-    return {
-      x: Math.max(PADDING, Math.min(x, maxX)),
-      y: Math.max(PADDING, Math.min(y, maxY))
-    };
-  };
-
-  const handleTableDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    
-    const tableRect = e.currentTarget.getBoundingClientRect();
-    const rawX = e.clientX - tableRect.left;
-    const rawY = e.clientY - tableRect.top;
-    
-    // Constrain the position within table boundaries
-    const { x, y } = constrainPosition(rawX, rawY, tableRect);
-    
-    Object.defineProperties(e, {
-      clientX: { value: tableRect.left + x },
-      clientY: { value: tableRect.top + y }
-    });
-    
-    onDrop(e);
-  };
 
   const handleCardClick = (card: Card) => {
     if (!isPlayerTurn) return;
@@ -132,6 +70,20 @@ export const TableArea: React.FC<TableAreaProps> = ({
     setPotentialDropTarget(null);
   };
 
+  const isCardOverlapping = (x: number, y: number, existingCard: Card) => {
+    const cardWidth = 80; // Width of card including padding
+    const cardHeight = 112; // Height of card including padding
+    const existingX = existingCard.tableX || 0;
+    const existingY = existingCard.tableY || 0;
+
+    return (
+      x < existingX + cardWidth &&
+      x + cardWidth > existingX &&
+      y < existingY + cardHeight &&
+      y + cardHeight > existingY
+    );
+  };
+
   return (
     <div className="flex flex-col md:flex-row items-stretch w-full max-w-[1024px] gap-2">
       {/* Left side area for chowed cards */}
@@ -139,7 +91,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
         {/* AI's chowed cards */}
         <div className="flex items-center">
           <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">AI chowed cards</span>
-          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-red-500 rounded-lg relative">
+          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-casino-gold rounded-lg relative">
             {aiChowedCards.map((card, index) => (
               <div 
                 key={`ai-chowed-${index}`}
@@ -158,7 +110,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
         {/* Player's chowed cards */}
         <div className="flex items-center">
-          <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">Chowed</span>
+          <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">{playerName}'s chowed</span>
           <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-casino-gold rounded-lg relative">
             {playerChowedCards.map((card, index) => (
               <div 
@@ -182,7 +134,6 @@ export const TableArea: React.FC<TableAreaProps> = ({
             onClick={onEndTurn}
             className="hidden md:block mt-4"
             disabled={!hasPlayedCard}
-            variant={hasPlayedCard ? "default" : "secondary"}
           >
             End Turn
           </Button>
@@ -190,12 +141,12 @@ export const TableArea: React.FC<TableAreaProps> = ({
       </div>
 
       {/* Main Table */}
-      <div className="w-full md:w-[800px] h-[300px] md:h-[400px] bg-[#0F8A3C] rounded-lg relative overflow-hidden">
-        <div 
-          className="absolute inset-0 p-4"
-          onDragOver={handleDragOver}
-          onDrop={handleTableDrop}
-        >
+      <div 
+        className="w-full md:w-[800px] h-[300px] md:h-[400px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+      >
+        <div className="absolute inset-0 p-4">
           {/* Table cards */}
           {tableCards.map((card, index) => (
             <div
@@ -204,8 +155,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 potentialDropTarget === card ? 'ring-4 ring-casino-gold ring-opacity-50' : ''
               }`}
               style={{
-                left: Math.min(Math.max(card.tableX || 20, 20), 720) + 'px',
-                top: Math.min(Math.max(card.tableY || 20, 20), 320) + 'px',
+                left: Math.min(Math.max(card.tableX || 0, 0), 720) + 'px',
+                top: Math.min(Math.max(card.tableY || 0, 0), 320) + 'px',
                 zIndex: isDraggingTable ? 1000 : 1,
               }}
               draggable={isPlayerTurn}
@@ -220,11 +171,6 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 isSelected={selectedCards.includes(card)}
                 isDraggable={isPlayerTurn}
               />
-              {potentialDropTarget === card && (
-                <div className="absolute -top-2 -right-2 text-casino-gold">
-                  <PlusCircle className="w-6 h-6" />
-                </div>
-              )}
             </div>
           ))}
 
@@ -234,8 +180,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
               key={`build-${buildIndex}`}
               className="absolute"
               style={{
-                left: Math.min(Math.max(build.position.x || 20, 20), 720) + 'px',
-                top: Math.min(Math.max(build.position.y || 20, 20), 320) + 'px',
+                left: Math.min(Math.max(build.position.x, 0), 720) + 'px',
+                top: Math.min(Math.max(build.position.y, 0), 320) + 'px',
                 zIndex: 2
               }}
             >
@@ -252,20 +198,12 @@ export const TableArea: React.FC<TableAreaProps> = ({
                   <CardComponent card={{ ...card, faceUp: true }} />
                 </div>
               ))}
-              <div 
-                className={`absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs md:text-sm font-bold z-50 ${
-                  build.owner === 'player' 
-                    ? 'bg-casino-gold text-black' 
-                    : 'bg-red-500 text-white'
-                }`}
-              >
+              <div className="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold z-50">
                 {build.value}
               </div>
-              {potentialDropTarget === build.cards[build.cards.length - 1] && (
-                <div className="absolute -top-2 -right-2 text-casino-gold z-[60]">
-                  <PlusCircle className="w-6 h-6" />
-                </div>
-              )}
+              <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">
+                {build.owner === 'player' ? playerName : 'AI'}
+              </div>
             </div>
           ))}
         </div>
@@ -277,11 +215,10 @@ export const TableArea: React.FC<TableAreaProps> = ({
           onClick={onEndTurn}
           className="md:hidden w-full mt-2"
           disabled={!hasPlayedCard}
-          variant={hasPlayedCard ? "default" : "secondary"}
         >
           End Turn
         </Button>
       )}
     </div>
-  );
+);
 };

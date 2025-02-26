@@ -24,41 +24,35 @@ const Index = () => {
     }
   };
 
-  const handleRulesClick = () => {
-    window.open("https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4", "_blank");
-  };
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-between bg-casino-green relative overflow-hidden">
       {/* Background Suit Symbols */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
+      <div className="absolute inset-0 opacity-10">
         <Heart className="absolute top-[10%] left-[10%] w-32 h-32" />
         <Spade className="absolute bottom-[40%] right-[10%] w-32 h-32" />
       </div>
       
       {/* Header */}
-      <header className="w-full p-4 flex justify-between items-center relative z-20">
+      <header className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
           <Spade className="w-8 h-8 text-casino-gold" />
-          <span className="text-2xl font-bold text-white">Khasino</span>
+          <span className="text-2xl font-bold text-white">Cassino</span>
         </div>
         <div className="flex items-center gap-6">
-          <a 
-            href="https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white hover:text-casino-gold hover:bg-white/10 transition-colors cursor-pointer px-4 py-2 rounded-md relative z-20"
+          <Button 
+            variant="link" 
+            className="text-white hover:text-casino-gold"
           >
             Rules
-          </a>
+          </Button>
           <SocialMediaLinks />
         </div>
       </header>
 
       {/* Main Content */}
       <div className="text-center space-y-8 z-10">
-        <h1 className="text-6xl font-bold text-white mb-4">Welcome to Khasino</h1>
-        <p className="text-xl text-casino-gold mb-8">The #1 Free Khasino Game</p>
+        <h1 className="text-6xl font-bold text-white mb-4">Welcome to Cassino</h1>
+        <p className="text-xl text-casino-gold mb-8">The #1 Free Casino Game</p>
         <div className="space-x-4">
           <Button 
             onClick={() => setGuestDialogOpen(true)} 
@@ -104,7 +98,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="w-full p-4 text-center">
-        <span className="text-white opacity-75">© {new Date().getFullYear()} Khasino. All rights reserved.</span>
+        <span className="text-white opacity-75">© 2024 Cassino. All rights reserved.</span>
       </footer>
     </div>
   );
