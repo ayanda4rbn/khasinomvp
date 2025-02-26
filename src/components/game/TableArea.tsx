@@ -140,7 +140,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
         {/* AI's chowed cards */}
         <div className="flex items-center">
           <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">AI chowed cards</span>
-          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-casino-gold rounded-lg relative">
+          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-red-500 rounded-lg relative">
             {aiChowedCards.map((card, index) => (
               <div 
                 key={`ai-chowed-${index}`}
@@ -252,7 +252,13 @@ export const TableArea: React.FC<TableAreaProps> = ({
                   <CardComponent card={{ ...card, faceUp: true }} />
                 </div>
               ))}
-              <div className="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold z-50">
+              <div 
+                className={`absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs md:text-sm font-bold z-50 ${
+                  build.owner === 'player' 
+                    ? 'bg-casino-gold text-black' 
+                    : 'bg-red-500 text-white'
+                }`}
+              >
                 {build.value}
               </div>
               <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">

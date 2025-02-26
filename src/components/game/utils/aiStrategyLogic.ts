@@ -14,7 +14,24 @@ export const findBestMove = (
   buildWith?: Card,
   augmentBuild?: BuildType
 } | null => {
-  // Priority 1: Capture valuable cards
+  // Priority 1: Check for compound build opportunities on AI's existing builds
+  const aiBuilds = builds.filter(build => build.owner === 'ai');
+  if (aiBuilds.length > 0) {
+    for (const build of aiBuilds) {
+      for (const card of aiHand) {
+        const newSum = build.value + card.value;
+        if (newSum <= 10 && newSum < build.value * 2 && aiHand.some(c => c.value === newSum)) {
+          return {
+            type: 'augment',
+            card: card,
+            augmentBuild: build
+          };
+        }
+      }
+    }
+  }
+
+  // Priority 2: Capture valuable cards
   for (const aiCard of aiHand) {
     const { cards: capturableCards, builds: capturableBuilds } = canCaptureCards(aiCard, tableCards, builds);
     const hasValuableCapture = capturableCards.some(card => 
@@ -33,7 +50,7 @@ export const findBestMove = (
     }
   }
 
-  // Priority 2: Capture spades
+  // Priority 3: Capture spades
   for (const aiCard of aiHand) {
     const { cards: capturableCards, builds: capturableBuilds } = canCaptureCards(aiCard, tableCards, builds);
     const hasSpadesCapture = capturableCards.some(card => card.suit === 'spades');
@@ -48,7 +65,7 @@ export const findBestMove = (
     }
   }
 
-  // Priority 3: Build if possible (only if no existing AI build)
+  // Priority 4: Build if possible (only if no existing AI build)
   const hasAIBuild = builds.some(build => build.owner === 'ai');
   if (!hasAIBuild) {
     for (const aiCard of aiHand) {
@@ -60,25 +77,6 @@ export const findBestMove = (
             card: aiCard,
             buildWith: tableCard
           };
-        }
-      }
-    }
-  }
-
-  // Priority 4: Augment opponent's build if possible (only if no existing AI build)
-  if (!hasAIBuild) {
-    for (const aiCard of aiHand) {
-      for (const build of builds) {
-        if (build.owner === 'player') {
-          const newSum = build.value + aiCard.value;
-          // Check if it would make it a compound build (2x or more of original)
-          if (newSum <= 10 && newSum < build.value * 2 && aiHand.some(card => card.value === newSum)) {
-            return {
-              type: 'augment',
-              card: aiCard,
-              augmentBuild: build
-            };
-          }
         }
       }
     }
