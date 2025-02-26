@@ -144,50 +144,15 @@ export const handleNewBuild = (
   });
 
   if (card.value === overlappingCard.value) {
-    const buildValue = card.value * 2;
-    const hasMatchingCard = playerHand.some(c => c.value === buildValue);
-    const existingBuild = builds.find(b => b.value === buildValue);
-    
-    if (hasMatchingCard) {
-      const shouldBuild = window.confirm(
-        `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
-      );
-
-      if (shouldBuild) {
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-      } else {
-        // Sort only the initial pair of cards
-        const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
-        
-        if (existingBuild && existingBuild.owner === 'player') {
-          // Add to existing build
-          const updatedBuild: BuildType = {
-            ...existingBuild,
-            cards: [...existingBuild.cards, ...buildCards]
-          };
-          setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
-        } else {
-          // Create new build
-          const newBuild: BuildType = {
-            id: Date.now(),
-            cards: buildCards,
-            value: buildValue,
-            position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
-            owner: 'player'
-          };
-          setBuilds([...builds, newBuild]);
-        }
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        toast.success(`Created a build of ${buildValue}`);
-      }
-      
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      return true;
-    }
+    // Always chow matching pairs
+    setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+    setTableCards(tableCards.filter(c => c !== overlappingCard));
+    const newPlayerHand = [...playerHand];
+    newPlayerHand.splice(cardIndex, 1);
+    setPlayerHand(newPlayerHand);
+    setIsPlayerTurn(false);
+    toast.success(`Chowed pair of ${card.value}s`);
+    return true;
   }
 
   const buildValue = card.value + overlappingCard.value;
