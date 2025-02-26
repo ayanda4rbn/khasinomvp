@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -20,7 +21,10 @@ export const handleBuildCapture = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ) => {
-  setPlayerChowedCards(prev => [...prev, ...build.cards, card]);
+  // Create a new array with all cards to be chowed
+  const newChowedCards = card ? [...build.cards, card] : build.cards;
+  
+  setPlayerChowedCards(prevChowedCards => [...prevChowedCards, ...newChowedCards]);
   setBuilds(builds.filter(b => b.id !== build.id));
   setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
   setIsPlayerTurn(false);
