@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Heart, Spade } from "lucide-react";
@@ -44,13 +43,14 @@ const Index = () => {
           <span className="text-2xl font-bold text-white">Khasino</span>
         </div>
         <div className="flex items-center gap-6">
-          <Button 
-            variant="ghost" 
+          <a 
+            href="https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-white hover:text-casino-gold hover:bg-white/10 transition-colors cursor-pointer px-4 py-2 rounded-md"
-            onClick={handleRulesClick}
           >
             Rules
-          </Button>
+          </a>
           <SocialMediaLinks />
         </div>
       </header>
