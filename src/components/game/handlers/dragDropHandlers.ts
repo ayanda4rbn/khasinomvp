@@ -10,47 +10,6 @@ export const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: numbe
   e.dataTransfer.setData('text/plain', index.toString());
 };
 
-export const handleNewBuild = (
-  card: Card,
-  overlappingCard: Card,
-  playerHand: Card[],
-  cardIndex: number,
-  hasPlayerBuild: boolean,
-  setBuilds: (builds: BuildType[]) => void,
-  setTableCards: (cards: Card[]) => void,
-  setPlayerHand: (hand: Card[]) => void,
-  setIsPlayerTurn: (isPlayerTurn: boolean) => void,
-  tableCards: Card[],
-  builds: BuildType[]
-): boolean => {
-  if (hasPlayerBuild) {
-    toast.error("You can only have one build at a time!");
-    return false;
-  }
-
-  if (card.value === overlappingCard.value) {
-    const newBuild: BuildType = {
-      id: Date.now(),
-      cards: [{ ...overlappingCard, playedBy: 'player' }, { ...card, playedBy: 'player' }],
-      value: card.value * 2,
-      owner: 'player',
-      position: {
-        x: overlappingCard.tableX || 20,
-        y: overlappingCard.tableY || 20,
-      }
-    };
-
-    setBuilds([...builds, newBuild]);
-    setTableCards(tableCards.filter(c => c !== overlappingCard));
-    setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
-    setIsPlayerTurn(false);
-    toast.success("New build created!");
-    return true;
-  }
-
-  return false;
-};
-
 export const handleBuildCapture = (
   card: Card,
   build: BuildType,
@@ -61,18 +20,17 @@ export const handleBuildCapture = (
   setPlayerHand: (hand: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[],
-  playerChowedCards: Card[]
-): boolean => {
-  if (card.value === build.value) {
-    setPlayerChowedCards([...playerChowedCards, ...build.cards, card]);
-    setBuilds(builds.filter(b => b.id !== build.id));
-    setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
-    setIsPlayerTurn(false);
-    toast.success("Build captured!");
-    return true;
-  }
-
-  return false;
+  playerChowedCards: Card[]  // Added this parameter
+) => {
+  // Create a new array with all cards to be chowed
+  const newChowedCards = card ? [...build.cards, card] : build.cards;
+  
+  // Create a new array combining existing and new chowed cards
+  setPlayerChowedCards([...playerChowedCards, ...newChowedCards]);
+  setBuilds(builds.filter(b => b.id !== build.id));
+  setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
+  setIsPlayerTurn(false);
+  toast.success("You captured a build!");
 };
 
 export const handleBuildAugment = (
@@ -84,30 +42,24 @@ export const handleBuildAugment = (
   setBuilds: (builds: BuildType[]) => void,
   setPlayerHand: (hand: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
-  builds: BuildType[]
+  builds: BuildType[],
+  setPlayerChowedCards: (cards: Card[]) => void
 ): boolean => {
-  // Fix compound build logic
-  const targetSum = build.value + card.value;
+  const newSum = build.value + card.value;
   
-  // Updated validation for compound builds
-  const canAugment = (
-    targetSum <= 10 && // Can only build up to 10 (max card value in deck)
-    build.owner === 'player' && // Can only augment own builds
-    playerHand.some(c => c.value === targetSum) // Must have capturing card
-  );
-
-  if (canAugment) {
+  // Allow augmenting if the player has the capturing card for the new sum
+  if (newSum <= 10 && newSum < build.value * 2 && playerHand.some(c => c.value === newSum)) {
+    // Add the card to the build and update its value
     const updatedBuild: BuildType = {
       ...build,
-      cards: [...build.cards, { ...card, playedBy: 'player' }],
-      value: targetSum,
-      owner: 'player'
+      cards: [...build.cards, card],
+      value: newSum,
+      owner: 'player' // Transfer ownership to the player
     };
 
     setBuilds(builds.map(b => b.id === build.id ? updatedBuild : b));
     setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
     setIsPlayerTurn(false);
-    toast.success("Build augmented!");
     return true;
   }
 
@@ -115,9 +67,46 @@ export const handleBuildAugment = (
   return false;
 };
 
-export const detectOverlap = (rect1: DOMRect, rect2: DOMRect): boolean => {
-  return !(rect1.right < rect2.left ||
-           rect1.left > rect2.right ||
-           rect1.bottom < rect2.top ||
-           rect1.top > rect2.bottom);
+export const handleNewBuild = (
+  card: Card,
+  tableCard: Card,
+  playerHand: Card[],
+  cardIndex: number,
+  hasPlayerBuild: boolean,
+  setBuilds: (builds: BuildType[]) => void,
+  setTableCards: (cards: Card[]) => void,
+  setPlayerHand: (hand: Card[]) => void,
+  setPlayerChowedCards: (cards: Card[]) => void,
+  setIsPlayerTurn: (isPlayerTurn: boolean) => void,
+  tableCards: Card[],
+  builds: BuildType[]
+): boolean => {
+  if (hasPlayerBuild) {
+    toast.error("You cannot create a new build when you have an existing build!");
+    return false;
+  }
+
+  const buildValue = card.value + tableCard.value;
+  if (playerHand.some(c => c.value === buildValue)) {
+    const x = Math.random() * 400 + 50;
+    const y = Math.random() * 200 + 50;
+
+    const buildCards = [card, tableCard].sort((a, b) => b.value - a.value);
+
+    const newBuild: BuildType = {
+      id: Date.now(),
+      cards: buildCards,
+      value: buildValue,
+      position: { x, y },
+      owner: 'player'
+    };
+
+    setBuilds([...builds, newBuild]);
+    setTableCards(tableCards.filter(c => c !== tableCard));
+    setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
+    setIsPlayerTurn(false);
+    toast.info("You created a build!");
+    return true;
+  }
+  return false;
 };

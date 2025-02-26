@@ -3,7 +3,6 @@ import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-import { detectOverlap } from './handlers/dragDropHandlers';
 
 interface TableAreaProps {
   tableCards: Card[];
@@ -37,6 +36,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     
+    // Get table dimensions
     const tableRect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
@@ -46,14 +46,34 @@ export const TableArea: React.FC<TableAreaProps> = ({
     const CARD_HEIGHT = 64;
     const PADDING = 20;
     
-    // Check if cursor is within safe drop zone
+    // Check if the cursor is within the safe drop zone
     const isWithinBounds = 
       x >= PADDING &&
       x <= tableRect.width - CARD_WIDTH - PADDING &&
       y >= PADDING &&
       y <= tableRect.height - CARD_HEIGHT - PADDING;
     
-    e.dataTransfer.dropEffect = isWithinBounds ? 'move' : 'none';
+    // Only allow dropping within bounds
+    if (!isWithinBounds) {
+      e.dataTransfer.dropEffect = 'none';
+    } else {
+      e.dataTransfer.dropEffect = 'move';
+    }
+  };
+
+  const constrainPosition = (x: number, y: number, tableRect: DOMRect) => {
+    const CARD_WIDTH = 48;
+    const CARD_HEIGHT = 64;
+    const PADDING = 20;
+    
+    // Calculate max positions that keep cards within bounds
+    const maxX = tableRect.width - CARD_WIDTH - PADDING;
+    const maxY = tableRect.height - CARD_HEIGHT - PADDING;
+    
+    return {
+      x: Math.max(PADDING, Math.min(x, maxX)),
+      y: Math.max(PADDING, Math.min(y, maxY))
+    };
   };
 
   const handleTableDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -66,30 +86,12 @@ export const TableArea: React.FC<TableAreaProps> = ({
     // Constrain the position within table boundaries
     const { x, y } = constrainPosition(rawX, rawY, tableRect);
     
-    // Update the event coordinates with constrained values
     Object.defineProperties(e, {
       clientX: { value: tableRect.left + x },
       clientY: { value: tableRect.top + y }
     });
     
     onDrop(e);
-  };
-
-  const constrainPosition = (x: number, y: number, tableRect: DOMRect) => {
-    const CARD_WIDTH = 48;
-    const CARD_HEIGHT = 64;
-    const PADDING = 20;
-    const GRID_SIZE = 20;
-    
-    // Calculate max positions that keep cards within bounds
-    const maxX = tableRect.width - CARD_WIDTH - PADDING;
-    const maxY = tableRect.height - CARD_HEIGHT - PADDING;
-    
-    // Snap to grid and constrain within bounds
-    return {
-      x: Math.round(Math.max(PADDING, Math.min(x, maxX)) / GRID_SIZE) * GRID_SIZE,
-      y: Math.round(Math.max(PADDING, Math.min(y, maxY)) / GRID_SIZE) * GRID_SIZE
-    };
   };
 
   const handleCardClick = (card: Card) => {
@@ -219,7 +221,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 isDraggable={isPlayerTurn}
               />
               {potentialDropTarget === card && (
-                <div className="absolute -top-2 -right-2 text-casino-gold z-[60]">
+                <div className="absolute -top-2 -right-2 text-casino-gold">
                   <PlusCircle className="w-6 h-6" />
                 </div>
               )}
