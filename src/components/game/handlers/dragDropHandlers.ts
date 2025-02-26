@@ -158,46 +158,6 @@ export const handleNewBuild = (
       hasPlayerBuild: !!playerExistingBuild
     });
 
-    if (overlappingCard.value <= 5) {
-      if (playerExistingBuild && buildValue !== playerExistingBuild.value) {
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-        setIsPlayerTurn(false);
-        toast.success("Cards chowed!");
-        return true;
-      }
-      else if (hasMatchingCard && !existingBuild) {
-        const shouldChow = window.confirm(
-          `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
-        );
-
-        if (shouldChow) {
-          setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-          setTableCards(tableCards.filter(c => c !== overlappingCard));
-        } else {
-          const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value); // Keep higher values at bottom
-          const newBuild: BuildType = {
-            id: Date.now(),
-            cards: buildCards,
-            value: buildValue,
-            position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
-            owner: 'player'
-          };
-          setBuilds([...builds, newBuild]);
-          setTableCards(tableCards.filter(c => c !== overlappingCard));
-        }
-        
-        const newPlayerHand = [...playerHand];
-        newPlayerHand.splice(cardIndex, 1);
-        setPlayerHand(newPlayerHand);
-        setIsPlayerTurn(false);
-        return true;
-      }
-    }
-    
     if (existingBuild) {
       if (existingBuild.owner === 'player') {
         const shouldAdd = window.confirm(
@@ -256,6 +216,15 @@ export const handleNewBuild = (
       setIsPlayerTurn(false);
       return true;
     }
+
+    setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+    setTableCards(tableCards.filter(c => c !== overlappingCard));
+    const newPlayerHand = [...playerHand];
+    newPlayerHand.splice(cardIndex, 1);
+    setPlayerHand(newPlayerHand);
+    setIsPlayerTurn(false);
+    toast.success("Cards chowed!");
+    return true;
   }
 
   const buildValue = card.value + overlappingCard.value;
