@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
 import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
 
 interface TableAreaProps {
   tableCards: Card[];
@@ -218,6 +220,11 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 isSelected={selectedCards.includes(card)}
                 isDraggable={isPlayerTurn}
               />
+              {potentialDropTarget === card && (
+                <div className="absolute -top-2 -right-2 text-casino-gold">
+                  <PlusCircle className="w-6 h-6" />
+                </div>
+              )}
             </div>
           ))}
 
@@ -251,6 +258,11 @@ export const TableArea: React.FC<TableAreaProps> = ({
               <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">
                 {build.owner === 'player' ? playerName : 'AI'}
               </div>
+              {potentialDropTarget === build.cards[build.cards.length - 1] && (
+                <div className="absolute -top-2 -right-2 text-casino-gold z-[60]">
+                  <PlusCircle className="w-6 h-6" />
+                </div>
+              )}
             </div>
           ))}
         </div>
