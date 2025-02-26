@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -57,12 +56,10 @@ export const handleBuildAugment = async (
 
   // Allow augmenting if it would make a valid build and we have the matching card
   if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
-    const sortedNewCards = [overlappingBuild.cards[overlappingBuild.cards.length - 1], card]
-      .sort((a, b) => b.value - a.value);
-    
+    // For compound builds, simply add the new cards at the end (top) of the stack
     const updatedCards = [
-      ...overlappingBuild.cards.slice(0, -1),
-      ...sortedNewCards
+      ...overlappingBuild.cards,
+      card
     ];
     
     const updatedBuild = {
