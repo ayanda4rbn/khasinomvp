@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -103,48 +102,13 @@ export const handleNewBuild = (
     const hasMatchingCard = playerHand.some(c => c.value === buildValue);
     const existingBuild = builds.find(b => b.value === buildValue);
     
-    // If there's an existing build of this value
-    if (existingBuild) {
-      if (existingBuild.owner === 'player') {
-        // Add to player's existing build (compound build)
-        const shouldAdd = window.confirm(
-          `Do you want to chow the ${card.value} (OK) or add to your ${buildValue} build (Cancel)?`
-        );
-
-        if (shouldAdd) {
-          // Handle chow
-          setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-          setTableCards(tableCards.filter(c => c !== overlappingCard));
-        } else {
-          // Add to compound build
-          const updatedBuild = {
-            ...existingBuild,
-            cards: [...existingBuild.cards, card, overlappingCard].sort((a, b) => b.value - a.value),
-          };
-          setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
-          setTableCards(tableCards.filter(c => c !== overlappingCard));
-        }
-      } else {
-        // Cannot create duplicate build, must chow or capture
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-        toast.info(`Cannot create another ${buildValue} build. Cards chowed instead.`);
-      }
-      
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      return true;
-    }
-    
-    // Create new build if none exists
-    if (hasMatchingCard) {
-      const shouldBuild = window.confirm(
-        `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
+    // For values 5 or less, we need to ask the player if they want to chow or augment
+    if (card.value <= 5 && hasMatchingCard) {
+      const shouldChow = window.confirm(
+        `Do you want to chow ${card.value} (OK) or build ${buildValue} (Cancel)?`
       );
 
-      if (shouldBuild) {
+      if (shouldChow) {
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
       } else {
@@ -159,22 +123,17 @@ export const handleNewBuild = (
         setBuilds([...builds, newBuild]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
       }
-      
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      return true;
     } else {
-      // If no matching card, just chow
+      // For values above 5 or when player doesn't have the matching card, automatically chow
       setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
       setTableCards(tableCards.filter(c => c !== overlappingCard));
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      return true;
     }
+    
+    const newPlayerHand = [...playerHand];
+    newPlayerHand.splice(cardIndex, 1);
+    setPlayerHand(newPlayerHand);
+    setIsPlayerTurn(false);
+    return true;
   }
 
   // Handle non-matching cards (potential build)
