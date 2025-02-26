@@ -54,7 +54,10 @@ export const findBestMove = (
     for (const aiCard of aiHand) {
       for (const tableCard of tableCards) {
         const sum = aiCard.value + tableCard.value;
-        if (sum <= 10 && aiHand.some(card => card.value === sum)) {
+        // Check if there's already a build with this value from any player
+        const existingBuildWithValue = builds.some(build => build.value === sum);
+        
+        if (sum <= 10 && !existingBuildWithValue && aiHand.some(card => card.value === sum)) {
           return {
             type: 'build',
             card: aiCard,
