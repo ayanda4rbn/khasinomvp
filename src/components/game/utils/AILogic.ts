@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 import { findBestMove } from './aiStrategyLogic';
@@ -65,17 +64,15 @@ export const handleAITurn = (
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
-          // Sort only this pair of cards
           const newPair = [
             { ...move.buildWith, faceUp: true },
             { ...move.card, faceUp: true }
           ].sort((a, b) => b.value - a.value);
           
-          // Check for existing build with same value owned by AI
           const existingBuild = builds.find(b => b.value === buildValue && b.owner === 'ai');
           if (existingBuild) {
             console.log("[AI-BUILD] Adding to existing build");
-            const updatedBuild = {
+            const updatedBuild: BuildType = {
               ...existingBuild,
               cards: [...existingBuild.cards, ...newPair]
             };
@@ -104,7 +101,6 @@ export const handleAITurn = (
     case 'augment':
       if (move.augmentBuild) {
         console.log("[AI-BUILD] Augmenting existing build");
-        // Can't augment AI's own build
         if (move.augmentBuild.owner === 'ai') {
           setIsPlayerTurn(true);
           return;
@@ -112,7 +108,6 @@ export const handleAITurn = (
 
         const newBuildValue = move.augmentBuild.value + move.card.value;
         if (newBuildValue <= 10 && newBuildValue < move.augmentBuild.value * 2 && aiHand.some(card => card.value === newBuildValue)) {
-          // Check for existing build of same value owned by AI
           const existingAiBuild = builds.find(b => 
             b.id !== move.augmentBuild?.id && 
             b.value === newBuildValue && 
@@ -120,9 +115,8 @@ export const handleAITurn = (
           );
 
           if (existingAiBuild) {
-            // Add to existing build of same value
             const newPair = [...move.augmentBuild.cards, { ...move.card, faceUp: true }];
-            const updatedBuild = {
+            const updatedBuild: BuildType = {
               ...existingAiBuild,
               cards: [...existingAiBuild.cards, ...newPair]
             };
@@ -131,9 +125,8 @@ export const handleAITurn = (
               b.id === move.augmentBuild?.id ? undefined : b
             ).filter(Boolean) as BuildType[]);
           } else {
-            // Create new build from augmented cards
             const newPair = [...move.augmentBuild.cards, { ...move.card, faceUp: true }];
-            const updatedBuild = {
+            const updatedBuild: BuildType = {
               ...move.augmentBuild,
               cards: newPair,
               value: newBuildValue,

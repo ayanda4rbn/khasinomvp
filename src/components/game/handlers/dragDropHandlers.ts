@@ -92,7 +92,7 @@ export const handleBuildAugment = async (
         ...overlappingBuild.cards,
         { ...card, faceUp: true }
       ];
-      const updatedBuild = {
+      const updatedBuild: BuildType = {
         ...existingPlayerBuild,
         cards: [...existingPlayerBuild.cards, ...newPair]
       };
@@ -103,7 +103,7 @@ export const handleBuildAugment = async (
     } else {
       // Create new build or update existing
       const newPair = [{ ...card, faceUp: true }];
-      const updatedBuild = {
+      const updatedBuild: BuildType = {
         ...overlappingBuild,
         cards: [...overlappingBuild.cards, ...newPair],
         value: newBuildValue,
@@ -162,7 +162,7 @@ export const handleNewBuild = (
         
         if (existingBuild && existingBuild.owner === 'player') {
           // Add to existing build
-          const updatedBuild = {
+          const updatedBuild: BuildType = {
             ...existingBuild,
             cards: [...existingBuild.cards, ...buildCards]
           };
@@ -209,7 +209,7 @@ export const handleNewBuild = (
     
     if (existingBuild) {
       // Add to existing build, maintaining historical order
-      const updatedBuild = {
+      const updatedBuild: BuildType = {
         ...existingBuild,
         cards: [...existingBuild.cards, ...newPair]
       };
