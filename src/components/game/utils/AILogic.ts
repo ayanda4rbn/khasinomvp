@@ -141,8 +141,7 @@ export const handleAITurn = (
       break;
 
     case 'discard':
-      // Allow discard if it's the last card OR if there's no matching card needed for builds
-      if (aiHand.length === 1 || aiHand.some(c => c.value === move.card.value && c !== move.card)) {
+      if (move.card) {
         console.log("[AI-DISCARD] AI discarding card:", { value: move.card.value, suit: move.card.suit });
         handleAIDiscard(move.card, tableCards, setTableCards);
         toast.info("AI discarded a card");
@@ -161,4 +160,3 @@ export const handleAITurn = (
   console.log("[AI-TURN] Turn completed. New hand size:", aiHand.length - 1);
   setIsPlayerTurn(true);
 };
-
