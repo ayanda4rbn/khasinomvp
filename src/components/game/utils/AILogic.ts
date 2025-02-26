@@ -31,9 +31,6 @@ export const handleAITurn = (
 
   console.log("[AI-TURN] Selected move:", { type: move.type });
 
-  // Check if AI has a build on the table
-  const hasAIBuild = builds.some(build => build.owner === 'ai');
-
   switch (move.type) {
     case 'capture':
       if (move.captureCards?.length) {
@@ -61,32 +58,33 @@ export const handleAITurn = (
       break;
 
     case 'build':
-      if (move.buildWith && !hasAIBuild) {
+      if (move.buildWith) {
         console.log("[AI-BUILD] Creating new build");
         const buildValue = move.card.value + move.buildWith.value;
         if (aiHand.some(card => card.value === buildValue)) {
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
-          const buildCards = [
+          // Sort only this pair of cards
+          const newPair = [
             { ...move.buildWith, faceUp: true },
             { ...move.card, faceUp: true }
           ].sort((a, b) => b.value - a.value);
           
-          // Check for existing build with same value
+          // Check for existing build with same value owned by AI
           const existingBuild = builds.find(b => b.value === buildValue && b.owner === 'ai');
           if (existingBuild) {
             console.log("[AI-BUILD] Adding to existing build");
             const updatedBuild = {
               ...existingBuild,
-              cards: [...existingBuild.cards, ...buildCards].sort((a, b) => b.value - a.value)
+              cards: [...existingBuild.cards, ...newPair]
             };
             setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
           } else {
             console.log("[AI-BUILD] Creating new build");
             const newBuild: BuildType = {
               id: Date.now(),
-              cards: buildCards,
+              cards: newPair,
               value: buildValue,
               position: { x, y },
               owner: 'ai'
@@ -104,7 +102,7 @@ export const handleAITurn = (
       break;
 
     case 'augment':
-      if (move.augmentBuild && !hasAIBuild) {
+      if (move.augmentBuild) {
         console.log("[AI-BUILD] Augmenting existing build");
         // Can't augment AI's own build
         if (move.augmentBuild.owner === 'ai') {
@@ -114,29 +112,48 @@ export const handleAITurn = (
 
         const newBuildValue = move.augmentBuild.value + move.card.value;
         if (newBuildValue <= 10 && newBuildValue < move.augmentBuild.value * 2 && aiHand.some(card => card.value === newBuildValue)) {
-          const allCards = [...move.augmentBuild.cards, { ...move.card, faceUp: true }]
-            .sort((a, b) => b.value - a.value);
-          const updatedBuild: BuildType = {
-            ...move.augmentBuild,
-            cards: allCards,
-            value: newBuildValue,
-            owner: 'ai' // Transfer ownership to AI
-          };
-          setBuilds(builds.map(b => b.id === move.augmentBuild?.id ? updatedBuild : b));
+          // Check for existing build of same value owned by AI
+          const existingAiBuild = builds.find(b => 
+            b.id !== move.augmentBuild?.id && 
+            b.value === newBuildValue && 
+            b.owner === 'ai'
+          );
+
+          if (existingAiBuild) {
+            // Add to existing build of same value
+            const newPair = [...move.augmentBuild.cards, { ...move.card, faceUp: true }];
+            const updatedBuild = {
+              ...existingAiBuild,
+              cards: [...existingAiBuild.cards, ...newPair]
+            };
+            setBuilds(builds.map(b => 
+              b.id === existingAiBuild.id ? updatedBuild :
+              b.id === move.augmentBuild?.id ? undefined : b
+            ).filter(Boolean) as BuildType[]);
+          } else {
+            // Create new build from augmented cards
+            const newPair = [...move.augmentBuild.cards, { ...move.card, faceUp: true }];
+            const updatedBuild = {
+              ...move.augmentBuild,
+              cards: newPair,
+              value: newBuildValue,
+              owner: 'ai'
+            };
+            setBuilds(builds.map(b => b.id === move.augmentBuild?.id ? updatedBuild : b));
+          }
           toast.info("AI augmented a build!");
         }
       }
       break;
 
     case 'discard':
-      if (hasAIBuild) {
-        console.log("[AI-DISCARD] Cannot discard with existing build");
-        toast.error("AI cannot discard with an existing build!");
+      if (aiHand.some(c => c.value === move.card.value && c !== move.card)) {
+        handleAIDiscard(move.card, tableCards, setTableCards);
+        toast.info("AI discarded a card");
+      } else {
         setIsPlayerTurn(true);
         return;
       }
-      handleAIDiscard(move.card, tableCards, setTableCards);
-      toast.info("AI discarded a card");
       break;
   }
 
