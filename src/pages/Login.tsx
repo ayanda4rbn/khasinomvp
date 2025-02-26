@@ -15,14 +15,17 @@ import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { Spade } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { GuestForm } from "@/components/auth/GuestForm";
 
 const Login = () => {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [guestName, setGuestName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +33,24 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      if (isGuestMode) {
+        if (!guestName.trim()) {
+          toast({
+            title: "Error",
+            description: "Please enter a guest name",
+            variant: "destructive",
+          });
+          return;
+        }
+        localStorage.setItem("guestName", guestName);
+        navigate("/game");
+        toast({
+          title: "Welcome!",
+          description: `Playing as guest: ${guestName}`,
+        });
+        return;
+      }
+
       if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
@@ -78,6 +99,13 @@ const Login = () => {
     }
   };
 
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setGuestName("");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-casino-green relative overflow-hidden">
       <Spade className="absolute top-10 left-10 w-32 h-32 text-casino-gold opacity-20" />
@@ -85,14 +113,18 @@ const Login = () => {
       <Card className="w-full max-w-md bg-[#1A4423] border-casino-gold">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center text-white">
-            {isForgotPassword
+            {isGuestMode
+              ? "Play as Guest"
+              : isForgotPassword
               ? "Reset Password"
               : isSignUp
               ? "Create Account"
               : "Login"}
           </CardTitle>
           <CardDescription className="text-casino-gold text-center">
-            {isForgotPassword
+            {isGuestMode
+              ? "Enter your name to start playing"
+              : isForgotPassword
               ? "Enter your email to receive a reset link"
               : isSignUp
               ? "Enter your details to create an account"
@@ -101,48 +133,67 @@ const Login = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email" className="text-white">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="bg-[#21592C] border-casino-gold text-white placeholder:text-gray-400"
-              />
-            </div>
-            {!isForgotPassword && (
+            {isGuestMode ? (
               <div className="grid gap-2">
-                <Label htmlFor="password" className="text-white">
-                  Password
+                <Label htmlFor="guestName" className="text-white">
+                  Name
                 </Label>
                 <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="guestName"
+                  type="text"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
                   required
+                  placeholder="Enter your name"
                   className="bg-[#21592C] border-casino-gold text-white placeholder:text-gray-400"
                 />
               </div>
-            )}
-            {isSignUp && (
-              <div className="grid gap-2">
-                <Label htmlFor="confirmPassword" className="text-white">
-                  Confirm Password
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="bg-[#21592C] border-casino-gold text-white placeholder:text-gray-400"
-                />
-              </div>
+            ) : (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="email" className="text-white">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-[#21592C] border-casino-gold text-white placeholder:text-gray-400"
+                  />
+                </div>
+                {!isForgotPassword && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="password" className="text-white">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="bg-[#21592C] border-casino-gold text-white placeholder:text-gray-400"
+                    />
+                  </div>
+                )}
+                {isSignUp && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirmPassword" className="text-white">
+                      Confirm Password
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="bg-[#21592C] border-casino-gold text-white placeholder:text-gray-400"
+                    />
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
@@ -153,6 +204,8 @@ const Login = () => {
             >
               {isLoading
                 ? "Loading..."
+                : isGuestMode
+                ? "Start Playing"
                 : isForgotPassword
                 ? "Send Reset Link"
                 : isSignUp
@@ -160,14 +213,12 @@ const Login = () => {
                 : "Login"}
             </Button>
             <div className="flex flex-col items-center gap-2 text-sm">
-              {!isForgotPassword && (
+              {!isGuestMode && !isForgotPassword && (
                 <button
                   type="button"
                   onClick={() => {
                     setIsSignUp(!isSignUp);
-                    setEmail("");
-                    setPassword("");
-                    setConfirmPassword("");
+                    resetForm();
                   }}
                   className="text-casino-gold hover:text-yellow-600"
                 >
@@ -176,28 +227,37 @@ const Login = () => {
                     : "Don't have an account? Sign Up"}
                 </button>
               )}
-              {!isSignUp && !isForgotPassword && (
+              {!isSignUp && !isForgotPassword && !isGuestMode && (
                 <button
                   type="button"
                   onClick={() => {
                     setIsForgotPassword(true);
-                    setEmail("");
-                    setPassword("");
+                    resetForm();
                   }}
                   className="text-casino-gold hover:text-yellow-600"
                 >
                   Forgot password?
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsGuestMode(!isGuestMode);
+                  setIsForgotPassword(false);
+                  setIsSignUp(false);
+                  resetForm();
+                }}
+                className="text-casino-gold hover:text-yellow-600"
+              >
+                {isGuestMode ? "Back to Login" : "Play as Guest"}
+              </button>
               {(isSignUp || isForgotPassword) && (
                 <button
                   type="button"
                   onClick={() => {
                     setIsForgotPassword(false);
                     setIsSignUp(false);
-                    setEmail("");
-                    setPassword("");
-                    setConfirmPassword("");
+                    resetForm();
                   }}
                   className="text-casino-gold hover:text-yellow-600"
                 >
