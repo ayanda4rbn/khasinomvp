@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 import { findBestMove } from './aiStrategyLogic';
@@ -140,7 +141,8 @@ export const handleAITurn = (
       break;
 
     case 'discard':
-      if (aiHand.some(c => c.value === move.card.value && c !== move.card)) {
+      // Allow discard if it's the last card OR if there's no matching card needed for builds
+      if (aiHand.length === 1 || aiHand.some(c => c.value === move.card.value && c !== move.card)) {
         handleAIDiscard(move.card, tableCards, setTableCards);
         toast.info("AI discarded a card");
       } else {
