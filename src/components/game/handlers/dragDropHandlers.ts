@@ -56,8 +56,11 @@ export const handleBuildAugment = async (
 
   // Allow augmenting if it would make a valid build and we have the matching card
   if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
-    // Simply append the new card to the existing cards array, maintaining order
-    const updatedCards = [...overlappingBuild.cards, card];
+    // For augments (not compound builds), sort with highest value at bottom
+    const updatedCards = [
+      ...overlappingBuild.cards,
+      card
+    ].sort((a, b) => a.value - b.value); // Ascending order: smaller values on top
     
     const updatedBuild = {
       ...overlappingBuild,
@@ -96,6 +99,37 @@ export const handleNewBuild = (
     const buildValue = card.value * 2;
     const hasMatchingCard = playerHand.some(c => c.value === buildValue);
     const existingBuild = builds.find(b => b.value === buildValue);
+    
+    // If the overlapping card belongs to opponent's build and its value is ≤ 5
+    if (overlappingCard.value <= 5 && hasMatchingCard && !existingBuild) {
+      const shouldChow = window.confirm(
+        `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
+      );
+
+      if (shouldChow) {
+        // Handle chow
+        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+      } else {
+        // Create new build
+        const buildCards = [overlappingCard, card];
+        const newBuild: BuildType = {
+          id: Date.now(),
+          cards: buildCards,
+          value: buildValue,
+          position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
+          owner: 'player'
+        };
+        setBuilds([...builds, newBuild]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+      }
+      
+      const newPlayerHand = [...playerHand];
+      newPlayerHand.splice(cardIndex, 1);
+      setPlayerHand(newPlayerHand);
+      setIsPlayerTurn(false);
+      return true;
+    }
     
     // If there's an existing build of this value
     if (existingBuild) {
