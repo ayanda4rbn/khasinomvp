@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -90,7 +91,7 @@ export const handleBuildAugment = (
   
   // Updated validation for compound builds
   const canAugment = (
-    targetSum <= 14 && // Allow builds up to 14
+    targetSum <= 10 && // Can only build up to 10 (max card value in deck)
     build.owner === 'player' && // Can only augment own builds
     playerHand.some(c => c.value === targetSum) // Must have capturing card
   );
