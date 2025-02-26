@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Heart, Spade } from "lucide-react";
@@ -29,40 +30,38 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between bg-casino-green relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-between bg-[#1A4423] relative overflow-hidden">
       {/* Background Suit Symbols */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <Heart className="absolute top-[10%] left-[10%] w-32 h-32" />
-        <Spade className="absolute bottom-[40%] right-[10%] w-32 h-32" />
+        <Heart className="absolute top-[10%] left-[10%] w-32 h-32 text-white" />
+        <Spade className="absolute bottom-[40%] right-[10%] w-32 h-32 text-white" />
       </div>
       
       {/* Header */}
       <header className="w-full p-4 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <Spade className="w-8 h-8 text-casino-gold" />
+          <Spade className="w-8 h-8 text-[#FFD700]" />
           <span className="text-2xl font-bold text-white">Khasino</span>
         </div>
         <div className="flex items-center gap-6">
-          <a 
-            href="https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white hover:text-casino-gold hover:bg-white/10 transition-colors cursor-pointer px-4 py-2 rounded-md relative z-20"
+          <button 
+            onClick={handleRulesClick}
+            className="text-white hover:text-[#FFD700] hover:bg-white/10 transition-colors cursor-pointer px-4 py-2 rounded-md relative z-20"
           >
             Rules
-          </a>
+          </button>
           <SocialMediaLinks />
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="text-center space-y-8 z-10">
+      <main className="text-center space-y-8 z-10 flex-1 flex flex-col items-center justify-center">
         <h1 className="text-6xl font-bold text-white mb-4">Welcome to Khasino</h1>
-        <p className="text-xl text-casino-gold mb-8">The #1 Free Khasino Game</p>
+        <p className="text-xl text-[#FFD700] mb-8">The #1 Free Khasino Game</p>
         <div className="space-x-4">
           <Button 
             onClick={() => setGuestDialogOpen(true)} 
-            className="bg-casino-gold hover:bg-yellow-500 text-black px-8 py-6 text-lg"
+            className="bg-[#FFD700] hover:bg-yellow-500 text-black px-8 py-6 text-lg"
           >
             Play as Guest
           </Button>
@@ -73,14 +72,14 @@ const Index = () => {
             Login
           </Button>
         </div>
-      </div>
+      </main>
 
       {/* Guest Name Dialog */}
       <Dialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen}>
-        <DialogContent className="bg-casino-green border-casino-gold">
+        <DialogContent className="bg-[#1A4423] border-[#FFD700]">
           <DialogHeader>
             <DialogTitle className="text-white">Enter Your Name</DialogTitle>
-            <DialogDescription className="text-casino-gold">
+            <DialogDescription className="text-[#FFD700]">
               Please enter your name to continue as a guest
             </DialogDescription>
           </DialogHeader>
@@ -90,11 +89,11 @@ const Index = () => {
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               required
-              className="bg-[#1A4423] border-casino-gold text-white placeholder:text-gray-400"
+              className="bg-[#1A4423] border-[#FFD700] text-white placeholder:text-gray-400"
             />
             <Button 
               type="submit" 
-              className="w-full bg-casino-gold hover:bg-yellow-600 text-black font-bold"
+              className="w-full bg-[#FFD700] hover:bg-yellow-600 text-black font-bold"
             >
               Start Game
             </Button>
