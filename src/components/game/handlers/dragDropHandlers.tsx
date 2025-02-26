@@ -162,12 +162,15 @@ export const handleNewBuild = (
 
   const buildValue = card.value + tableCard.value;
   
-  // Check if player has enough cards for capturing
+  // Check if player has the capturing card
   if (playerHand.some(c => c.value === buildValue)) {
-    // Check if player has more than one card of the capturing value
-    const sameValueCards = playerHand.filter(c => c.value === buildValue);
-    if (sameValueCards.length < 2) {
-      toast.error("You need at least one more card to capture this build later!");
+    // Check if this is the only card that can capture the build
+    const capturingCardsCount = playerHand.filter(c => c.value === buildValue).length;
+    const cardBeingUsed = card.value === buildValue;
+    
+    // If we're using our only capturing card in the build, prevent it
+    if (cardBeingUsed && capturingCardsCount === 1) {
+      toast.error("You cannot use your only capturing card in a build!");
       return false;
     }
 
