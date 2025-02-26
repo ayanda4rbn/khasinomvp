@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -43,7 +44,6 @@ export const handleBuildAugment = async (
   builds: BuildType[],
   setPlayerChowedCards: React.Dispatch<React.SetStateAction<Card[]>>
 ): Promise<boolean> => {
-  // Check if this would make the same value as an existing build
   const newBuildValue = overlappingBuild.value + card.value;
   const existingBuildOfSameValue = builds.find(b => 
     b.id !== overlappingBuild.id && b.value === newBuildValue
@@ -54,9 +54,8 @@ export const handleBuildAugment = async (
     return false;
   }
 
-  // Allow augmenting if it would make a valid build and we have the matching card
   if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
-    // For augments (not compound builds), sort with highest value at bottom
+    // For augments, sort with lowest value at top
     const updatedCards = [
       ...overlappingBuild.cards,
       card
@@ -124,7 +123,7 @@ export const handleNewBuild = (
           setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
           setTableCards(tableCards.filter(c => c !== overlappingCard));
         } else {
-          const buildCards = [overlappingCard, card];
+          const buildCards = [overlappingCard, card].sort((a, b) => a.value - b.value); // Sort ascending for new builds
           const newBuild: BuildType = {
             id: Date.now(),
             cards: buildCards,
@@ -157,10 +156,10 @@ export const handleNewBuild = (
           setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
           setTableCards(tableCards.filter(c => c !== overlappingCard));
         } else {
-          // Add to compound build
+          // Add to compound build, sorting ascending (small values on top)
           const updatedBuild = {
             ...existingBuild,
-            cards: [...existingBuild.cards, card, overlappingCard].sort((a, b) => b.value - a.value),
+            cards: [...existingBuild.cards, card, overlappingCard].sort((a, b) => a.value - b.value),
           };
           setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
           setTableCards(tableCards.filter(c => c !== overlappingCard));
@@ -189,7 +188,7 @@ export const handleNewBuild = (
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
       } else {
-        const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
+        const buildCards = [card, overlappingCard].sort((a, b) => a.value - b.value); // Sort ascending for new builds
         const newBuild: BuildType = {
           id: Date.now(),
           cards: buildCards,
@@ -201,15 +200,6 @@ export const handleNewBuild = (
         setTableCards(tableCards.filter(c => c !== overlappingCard));
       }
       
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      return true;
-    } else {
-      // If no matching card, just chow
-      setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-      setTableCards(tableCards.filter(c => c !== overlappingCard));
       const newPlayerHand = [...playerHand];
       newPlayerHand.splice(cardIndex, 1);
       setPlayerHand(newPlayerHand);
@@ -228,7 +218,7 @@ export const handleNewBuild = (
       // Add to existing compound build
       const updatedBuild = {
         ...existingBuild,
-        cards: [...existingBuild.cards, card, overlappingCard].sort((a, b) => b.value - a.value),
+        cards: [...existingBuild.cards, card, overlappingCard].sort((a, b) => a.value - b.value), // Sort ascending
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
       setTableCards(tableCards.filter(c => c !== overlappingCard));
@@ -246,7 +236,7 @@ export const handleNewBuild = (
 
   // Create new build if no existing build of this value
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
+    const buildCards = [card, overlappingCard].sort((a, b) => a.value - b.value); // Sort ascending for new builds
     const newBuild: BuildType = {
       id: Date.now(),
       cards: buildCards,
@@ -268,3 +258,4 @@ export const handleNewBuild = (
   toast.error("Invalid build! You must have a card matching the build value.");
   return false;
 };
+
