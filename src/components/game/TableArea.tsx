@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -86,7 +85,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-stretch w-full max-w-[880px] gap-2 px-2">
+    <div className="flex flex-col md:flex-row items-stretch w-full max-w-[1024px] gap-2">
       {/* Left side area for chowed cards */}
       <div className="flex flex-row md:flex-col justify-between w-full md:w-auto h-full gap-4 md:mr-4">
         {/* AI's chowed cards */}
@@ -143,72 +142,71 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
       {/* Main Table */}
       <div 
-        className="w-full md:w-[600px] h-[250px] md:h-[350px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
+        className="w-full md:w-[800px] h-[300px] md:h-[400px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {/* Table cards */}
-        {tableCards.map((card, index) => (
-          <div
-            key={`table-${index}`}
-            className={`absolute transition-transform ${
-              potentialDropTarget === card ? 'ring-4 ring-casino-gold ring-opacity-50' : ''
-            }`}
-            style={{
-              left: card.tableX ? `${card.tableX}px` : '0',
-              top: card.tableY ? `${card.tableY}px` : '0',
-              zIndex: isDraggingTable ? 1000 : 1,
-            }}
-            draggable={isPlayerTurn}
-            onDragStart={(e) => handleTableCardDragStart(e, card)}
-            onDragEnd={handleTableCardDragEnd}
-            onDragOver={(e) => handleTableDragOver(e, card)}
-            onDragLeave={handleTableDragLeave}
-            onClick={() => handleCardClick(card)}
-          >
-            <CardComponent
-              card={{ ...card, faceUp: true }}
-              isSelected={selectedCards.includes(card)}
-              isDraggable={isPlayerTurn}
-            />
-          </div>
-        ))}
+        <div className="absolute inset-0 p-4">
+          {/* Table cards */}
+          {tableCards.map((card, index) => (
+            <div
+              key={`table-${index}`}
+              className={`absolute transition-transform ${
+                potentialDropTarget === card ? 'ring-4 ring-casino-gold ring-opacity-50' : ''
+              }`}
+              style={{
+                left: Math.min(Math.max(card.tableX || 0, 0), 720) + 'px',
+                top: Math.min(Math.max(card.tableY || 0, 0), 320) + 'px',
+                zIndex: isDraggingTable ? 1000 : 1,
+              }}
+              draggable={isPlayerTurn}
+              onDragStart={(e) => handleTableCardDragStart(e, card)}
+              onDragEnd={handleTableCardDragEnd}
+              onDragOver={(e) => handleTableDragOver(e, card)}
+              onDragLeave={handleTableDragLeave}
+              onClick={() => handleCardClick(card)}
+            >
+              <CardComponent
+                card={{ ...card, faceUp: true }}
+                isSelected={selectedCards.includes(card)}
+                isDraggable={isPlayerTurn}
+              />
+            </div>
+          ))}
 
-        {/* Builds displayed as card stacks */}
-        {builds.map((build, buildIndex) => (
-          <div
-            key={`build-${buildIndex}`}
-            className="absolute"
-            style={{
-              left: `${build.position.x}px`,
-              top: `${build.position.y}px`,
-              zIndex: 2
-            }}
-          >
-            {/* Stack of cards in the build */}
-            {build.cards.map((card, cardIndex) => (
-              <div
-                key={`build-${buildIndex}-card-${cardIndex}`}
-                className="absolute"
-                style={{
-                  top: `${cardIndex * -2}px`,
-                  left: `${cardIndex * 2}px`,
-                  zIndex: cardIndex + 10,
-                }}
-              >
-                <CardComponent card={{ ...card, faceUp: true }} />
+          {/* Builds displayed as card stacks */}
+          {builds.map((build, buildIndex) => (
+            <div
+              key={`build-${buildIndex}`}
+              className="absolute"
+              style={{
+                left: Math.min(Math.max(build.position.x, 0), 720) + 'px',
+                top: Math.min(Math.max(build.position.y, 0), 320) + 'px',
+                zIndex: 2
+              }}
+            >
+              {build.cards.map((card, cardIndex) => (
+                <div
+                  key={`build-${buildIndex}-card-${cardIndex}`}
+                  className="absolute"
+                  style={{
+                    top: `${cardIndex * -2}px`,
+                    left: `${cardIndex * 2}px`,
+                    zIndex: cardIndex + 10,
+                  }}
+                >
+                  <CardComponent card={{ ...card, faceUp: true }} />
+                </div>
+              ))}
+              <div className="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold z-50">
+                {build.value}
               </div>
-            ))}
-            {/* Build value indicator */}
-            <div className="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-casino-gold rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold z-50">
-              {build.value}
+              <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">
+                {build.owner === 'player' ? playerName : 'AI'}
+              </div>
             </div>
-            {/* Owner indicator */}
-            <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">
-              {build.owner === 'player' ? playerName : 'AI'}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Mobile End Turn Button */}
@@ -222,5 +220,5 @@ export const TableArea: React.FC<TableAreaProps> = ({
         </Button>
       )}
     </div>
-  );
+);
 };

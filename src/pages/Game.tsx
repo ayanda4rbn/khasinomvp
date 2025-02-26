@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/types/game";
@@ -101,7 +100,7 @@ const Game = () => {
   };
 
   return (
-    <div className="min-h-screen bg-casino-green px-2 md:px-4 py-2 md:py-4 flex flex-col">
+    <div className="min-h-screen bg-casino-green flex flex-col">
       {!gameMode && (
         <GameModeSelection onSelectMode={setGameMode} />
       )}

@@ -6,6 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
 
 interface GameSummaryDialogProps {
   open: boolean;
@@ -20,6 +22,8 @@ export const GameSummaryDialog: React.FC<GameSummaryDialogProps> = ({
   summary,
   playerName,
 }) => {
+  const navigate = useNavigate();
+  
   const getSpadesBonus = (playerSpades: number, aiSpades: number) => {
     if (playerSpades > aiSpades) return "(+2)";
     if (aiSpades > playerSpades) return "";
@@ -32,6 +36,14 @@ export const GameSummaryDialog: React.FC<GameSummaryDialogProps> = ({
     if (playerSpades > aiSpades) return "";
     if (playerSpades === aiSpades) return "(+1)";
     return "";
+  };
+
+  const handlePlayAgain = () => {
+    window.location.reload();
+  };
+
+  const handleSaveScore = () => {
+    navigate('/login');
   };
 
   return (
@@ -64,6 +76,10 @@ export const GameSummaryDialog: React.FC<GameSummaryDialogProps> = ({
           {summary.winner === 'player' ? `${playerName} wins!` :
            summary.winner === 'ai' ? "AI wins!" :
            "It's a tie!"}
+        </div>
+        <div className="mt-4 flex gap-4 justify-center">
+          <Button onClick={handlePlayAgain}>Play Again</Button>
+          <Button onClick={handleSaveScore} variant="secondary">Save Score</Button>
         </div>
       </DialogContent>
     </Dialog>
