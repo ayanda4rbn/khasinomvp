@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -66,7 +65,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
     const CARD_HEIGHT = 64;
     const PADDING = 20;
     
-    // Ensure positions stay within table boundaries
+    // Calculate max positions that keep cards within bounds
     const maxX = tableRect.width - CARD_WIDTH - PADDING;
     const maxY = tableRect.height - CARD_HEIGHT - PADDING;
     
@@ -86,7 +85,6 @@ export const TableArea: React.FC<TableAreaProps> = ({
     // Constrain the position within table boundaries
     const { x, y } = constrainPosition(rawX, rawY, tableRect);
     
-    // Instead of creating a new event, we'll modify the original event's coordinates
     Object.defineProperties(e, {
       clientX: { value: tableRect.left + x },
       clientY: { value: tableRect.top + y }
@@ -204,8 +202,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 potentialDropTarget === card ? 'ring-4 ring-casino-gold ring-opacity-50' : ''
               }`}
               style={{
-                left: Math.min(Math.max(card.tableX || 20, 20), 232) + 'px',
-                top: Math.min(Math.max(card.tableY || 20, 20), 216) + 'px',
+                left: Math.min(Math.max(card.tableX || 20, 20), 720) + 'px',
+                top: Math.min(Math.max(card.tableY || 20, 20), 320) + 'px',
                 zIndex: isDraggingTable ? 1000 : 1,
               }}
               draggable={isPlayerTurn}
@@ -229,8 +227,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
               key={`build-${buildIndex}`}
               className="absolute"
               style={{
-                left: Math.min(Math.max(build.position.x || 20, 20), 232) + 'px',
-                top: Math.min(Math.max(build.position.y || 20, 20), 216) + 'px',
+                left: Math.min(Math.max(build.position.x || 20, 20), 720) + 'px',
+                top: Math.min(Math.max(build.position.y || 20, 20), 320) + 'px',
                 zIndex: 2
               }}
             >
