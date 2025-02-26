@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/types/game';
 import { TableArea } from './TableArea';
@@ -147,7 +146,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           gameState.setPlayerHand,
           gameState.setIsPlayerTurn,
           gameState.builds,
-          gameState.playerChowedCards  // Added the missing parameter
+          gameState.playerChowedCards
         );
         setHasPlayedCard(true);
         return;
@@ -162,8 +161,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gameState.setBuilds,
         gameState.setPlayerHand,
         gameState.setIsPlayerTurn,
-        gameState.builds,
-        gameState.setPlayerChowedCards
+        gameState.builds
       )) {
         setHasPlayedCard(true);
         return;
@@ -180,7 +178,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gameState.setBuilds,
         gameState.setTableCards,
         gameState.setPlayerHand,
-        gameState.setPlayerChowedCards,
         gameState.setIsPlayerTurn,
         gameState.tableCards,
         gameState.builds
