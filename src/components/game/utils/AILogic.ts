@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 import { findBestMove } from './aiStrategyLogic';
@@ -14,6 +15,12 @@ export const handleAITurn = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   setAiChowedCards: React.Dispatch<React.SetStateAction<Card[]>>
 ) => {
+  console.log("[AI-TURN] Starting AI turn with:", {
+    handSize: aiHand.length,
+    tableCards: tableCards.length,
+    builds: builds.length
+  });
+
   const move = findBestMove(aiHand, tableCards, builds);
 
   if (!move) {
@@ -22,12 +29,15 @@ export const handleAITurn = (
     return;
   }
 
+  console.log("[AI-TURN] Selected move:", { type: move.type });
+
   // Check if AI has a build on the table
   const hasAIBuild = builds.some(build => build.owner === 'ai');
 
   switch (move.type) {
     case 'capture':
       if (move.captureCards?.length) {
+        console.log("[AI-CAPTURE] Capturing cards:", move.captureCards.length);
         setTableCards(tableCards.filter(card => 
           !move.captureCards?.some(captureCard => 
             captureCard.value === card.value && 
@@ -38,6 +48,7 @@ export const handleAITurn = (
         setAiChowedCards(prev => [...prev, ...sortedCaptureCards, move.card]);
       }
       if (move.captureBuilds?.length) {
+        console.log("[AI-CAPTURE] Capturing builds:", move.captureBuilds.length);
         const capturedBuildCards = move.captureBuilds.flatMap(build => build.cards);
         setBuilds(builds.filter(build => 
           !move.captureBuilds?.some(captureBuild => 
@@ -51,22 +62,28 @@ export const handleAITurn = (
 
     case 'build':
       if (move.buildWith && !hasAIBuild) {
+        console.log("[AI-BUILD] Creating new build");
         const buildValue = move.card.value + move.buildWith.value;
         if (aiHand.some(card => card.value === buildValue)) {
           const x = Math.random() * 400 + 50;
           const y = Math.random() * 200 + 50;
           
-          const buildCards = [move.buildWith, move.card].sort((a, b) => b.value - a.value);
+          const buildCards = [
+            { ...move.buildWith, faceUp: true },
+            { ...move.card, faceUp: true }
+          ].sort((a, b) => b.value - a.value);
           
           // Check for existing build with same value
           const existingBuild = builds.find(b => b.value === buildValue && b.owner === 'ai');
           if (existingBuild) {
+            console.log("[AI-BUILD] Adding to existing build");
             const updatedBuild = {
               ...existingBuild,
               cards: [...existingBuild.cards, ...buildCards].sort((a, b) => b.value - a.value)
             };
             setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
           } else {
+            console.log("[AI-BUILD] Creating new build");
             const newBuild: BuildType = {
               id: Date.now(),
               cards: buildCards,
@@ -88,6 +105,7 @@ export const handleAITurn = (
 
     case 'augment':
       if (move.augmentBuild && !hasAIBuild) {
+        console.log("[AI-BUILD] Augmenting existing build");
         // Can't augment AI's own build
         if (move.augmentBuild.owner === 'ai') {
           setIsPlayerTurn(true);
@@ -96,7 +114,8 @@ export const handleAITurn = (
 
         const newBuildValue = move.augmentBuild.value + move.card.value;
         if (newBuildValue <= 10 && newBuildValue < move.augmentBuild.value * 2 && aiHand.some(card => card.value === newBuildValue)) {
-          const allCards = [...move.augmentBuild.cards, move.card].sort((a, b) => b.value - a.value);
+          const allCards = [...move.augmentBuild.cards, { ...move.card, faceUp: true }]
+            .sort((a, b) => b.value - a.value);
           const updatedBuild: BuildType = {
             ...move.augmentBuild,
             cards: allCards,
@@ -111,6 +130,7 @@ export const handleAITurn = (
 
     case 'discard':
       if (hasAIBuild) {
+        console.log("[AI-DISCARD] Cannot discard with existing build");
         toast.error("AI cannot discard with an existing build!");
         setIsPlayerTurn(true);
         return;
@@ -125,5 +145,6 @@ export const handleAITurn = (
     card.suit !== move.card.suit
   ));
 
+  console.log("[AI-TURN] Turn completed. New hand size:", aiHand.length - 1);
   setIsPlayerTurn(true);
 };
