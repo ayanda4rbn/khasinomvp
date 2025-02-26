@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -81,14 +82,13 @@ export const TableArea: React.FC<TableAreaProps> = ({
     // Constrain the position within table boundaries
     const { x, y } = constrainPosition(rawX, rawY, tableRect);
     
-    // Create a new drop event with the constrained coordinates
-    const newEvent = new DragEvent('drop', {
-      ...e,
-      clientX: tableRect.left + x,
-      clientY: tableRect.top + y
+    // Instead of creating a new event, we'll modify the original event's coordinates
+    Object.defineProperties(e, {
+      clientX: { value: tableRect.left + x },
+      clientY: { value: tableRect.top + y }
     });
     
-    onDrop(newEvent);
+    onDrop(e);
   };
 
   const handleCardClick = (card: Card) => {
@@ -127,20 +127,6 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
   const handleTableDragLeave = () => {
     setPotentialDropTarget(null);
-  };
-
-  const isCardOverlapping = (x: number, y: number, existingCard: Card) => {
-    const cardWidth = 80; // Width of card including padding
-    const cardHeight = 112; // Height of card including padding
-    const existingX = existingCard.tableX || 0;
-    const existingY = existingCard.tableY || 0;
-
-    return (
-      x < existingX + cardWidth &&
-      x + cardWidth > existingX &&
-      y < existingY + cardHeight &&
-      y + cardHeight > existingY
-    );
   };
 
   return (
@@ -281,5 +267,5 @@ export const TableArea: React.FC<TableAreaProps> = ({
         </Button>
       )}
     </div>
-);
+  );
 };
