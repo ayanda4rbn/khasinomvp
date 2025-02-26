@@ -86,9 +86,9 @@ export const TableArea: React.FC<TableAreaProps> = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center w-full max-w-[880px] gap-4 px-2">
+    <div className="flex flex-col md:flex-row items-stretch w-full max-w-[880px] gap-2 px-2">
       {/* Left side area for chowed cards */}
-      <div className="flex flex-row md:flex-col justify-between w-full md:w-auto md:h-[300px] gap-4 md:mr-8">
+      <div className="flex flex-row md:flex-col justify-between w-full md:w-auto h-full gap-4 md:mr-4">
         {/* AI's chowed cards */}
         <div className="flex items-center">
           <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">AI chowed cards</span>
@@ -143,7 +143,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
       {/* Main Table */}
       <div 
-        className="w-full md:w-[550px] h-[200px] md:h-[300px] bg-[#0F8A3C] rounded-lg relative"
+        className="w-full md:w-[600px] h-[250px] md:h-[350px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
@@ -151,12 +151,12 @@ export const TableArea: React.FC<TableAreaProps> = ({
         {tableCards.map((card, index) => (
           <div
             key={`table-${index}`}
-            className={`absolute transition-all duration-200 ${
+            className={`absolute transition-transform ${
               potentialDropTarget === card ? 'ring-4 ring-casino-gold ring-opacity-50' : ''
             }`}
             style={{
-              left: card.tableX ? `${(card.tableX / 550) * 100}%` : '0',
-              top: card.tableY ? `${(card.tableY / 300) * 100}%` : '0',
+              left: card.tableX ? `${card.tableX}px` : '0',
+              top: card.tableY ? `${card.tableY}px` : '0',
               zIndex: isDraggingTable ? 1000 : 1,
             }}
             draggable={isPlayerTurn}
@@ -174,14 +174,14 @@ export const TableArea: React.FC<TableAreaProps> = ({
           </div>
         ))}
 
-        {/* Builds displayed as card stacks with value indicators */}
+        {/* Builds displayed as card stacks */}
         {builds.map((build, buildIndex) => (
           <div
             key={`build-${buildIndex}`}
             className="absolute"
             style={{
-              left: `${(build.position.x / 550) * 100}%`,
-              top: `${(build.position.y / 300) * 100}%`,
+              left: `${build.position.x}px`,
+              top: `${build.position.y}px`,
               zIndex: 2
             }}
           >
