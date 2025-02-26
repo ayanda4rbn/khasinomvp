@@ -55,11 +55,10 @@ export const handleBuildAugment = async (
   }
 
   if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
-    // For augments, sort with lowest value at top
     const updatedCards = [
       ...overlappingBuild.cards,
       card
-    ].sort((a, b) => a.value - b.value); // Ascending order: smaller values on top
+    ].sort((a, b) => b.value - a.value); // Sort descending: higher values at bottom
     
     const updatedBuild = {
       ...overlappingBuild,
@@ -93,16 +92,13 @@ export const handleNewBuild = (
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {
-  // Check for matching values first (potential chow or compound build)
   if (card.value === overlappingCard.value) {
     const buildValue = card.value * 2;
     const hasMatchingCard = playerHand.some(c => c.value === buildValue);
     const existingBuild = builds.find(b => b.value === buildValue);
     const playerExistingBuild = builds.find(b => b.owner === 'player');
     
-    // If the overlapping card belongs to opponent's build and its value is ≤ 5
     if (overlappingCard.value <= 5) {
-      // If player has a build and the buildValue is not equal to the player's existing build value
       if (playerExistingBuild && buildValue !== playerExistingBuild.value) {
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
@@ -113,7 +109,6 @@ export const handleNewBuild = (
         toast.success("Cards chowed!");
         return true;
       }
-      // If no existing build or if buildValue equals player's existing build value
       else if (hasMatchingCard && !existingBuild) {
         const shouldChow = window.confirm(
           `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
@@ -123,7 +118,7 @@ export const handleNewBuild = (
           setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
           setTableCards(tableCards.filter(c => c !== overlappingCard));
         } else {
-          const buildCards = [overlappingCard, card].sort((a, b) => a.value - b.value); // Sort ascending for new builds
+          const buildCards = [overlappingCard, card].sort((a, b) => b.value - a.value); // Keep higher values at bottom
           const newBuild: BuildType = {
             id: Date.now(),
             cards: buildCards,
@@ -143,29 +138,25 @@ export const handleNewBuild = (
       }
     }
     
-    // If there's an existing build of this value
     if (existingBuild) {
       if (existingBuild.owner === 'player') {
-        // Add to player's existing build (compound build)
         const shouldAdd = window.confirm(
           `Do you want to chow the ${card.value} (OK) or add to your ${buildValue} build (Cancel)?`
         );
 
         if (shouldAdd) {
-          // Handle chow
           setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
           setTableCards(tableCards.filter(c => c !== overlappingCard));
         } else {
-          // Add to compound build, sorting ascending (small values on top)
+          // For compound builds, append new combination without sorting
           const updatedBuild = {
             ...existingBuild,
-            cards: [...existingBuild.cards, card, overlappingCard].sort((a, b) => a.value - b.value),
+            cards: [...existingBuild.cards, card, overlappingCard],
           };
           setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
           setTableCards(tableCards.filter(c => c !== overlappingCard));
         }
       } else {
-        // Cannot create duplicate build, must chow or capture
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
         toast.info(`Cannot create another ${buildValue} build. Cards chowed instead.`);
@@ -178,7 +169,6 @@ export const handleNewBuild = (
       return true;
     }
     
-    // Create new build if none exists
     if (hasMatchingCard) {
       const shouldBuild = window.confirm(
         `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
@@ -188,7 +178,7 @@ export const handleNewBuild = (
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
       } else {
-        const buildCards = [card, overlappingCard].sort((a, b) => a.value - b.value); // Sort ascending for new builds
+        const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value); // Higher values at bottom for new builds
         const newBuild: BuildType = {
           id: Date.now(),
           cards: buildCards,
@@ -208,17 +198,15 @@ export const handleNewBuild = (
     }
   }
 
-  // Handle non-matching cards (potential build)
   const buildValue = card.value + overlappingCard.value;
   const existingBuild = builds.find(b => b.value === buildValue);
 
-  // If there's an existing build of this value
   if (existingBuild) {
     if (existingBuild.owner === 'player') {
-      // Add to existing compound build
+      // For compound builds, append new combination without sorting
       const updatedBuild = {
         ...existingBuild,
-        cards: [...existingBuild.cards, card, overlappingCard].sort((a, b) => a.value - b.value), // Sort ascending
+        cards: [...existingBuild.cards, card, overlappingCard],
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
       setTableCards(tableCards.filter(c => c !== overlappingCard));
@@ -234,9 +222,8 @@ export const handleNewBuild = (
     }
   }
 
-  // Create new build if no existing build of this value
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    const buildCards = [card, overlappingCard].sort((a, b) => a.value - b.value); // Sort ascending for new builds
+    const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value); // Higher values at bottom for new builds
     const newBuild: BuildType = {
       id: Date.now(),
       cards: buildCards,
@@ -258,4 +245,3 @@ export const handleNewBuild = (
   toast.error("Invalid build! You must have a card matching the build value.");
   return false;
 };
-
