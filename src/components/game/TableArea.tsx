@@ -66,9 +66,13 @@ export const TableArea: React.FC<TableAreaProps> = ({
     const CARD_HEIGHT = 64;
     const PADDING = 20;
     
+    // Ensure positions stay within table boundaries
+    const maxX = tableRect.width - CARD_WIDTH - PADDING;
+    const maxY = tableRect.height - CARD_HEIGHT - PADDING;
+    
     return {
-      x: Math.max(PADDING, Math.min(x, tableRect.width - CARD_WIDTH - PADDING)),
-      y: Math.max(PADDING, Math.min(y, tableRect.height - CARD_HEIGHT - PADDING))
+      x: Math.max(PADDING, Math.min(x, maxX)),
+      y: Math.max(PADDING, Math.min(y, maxY))
     };
   };
 
@@ -186,9 +190,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
       </div>
 
       {/* Main Table */}
-      <div 
-        className="w-full md:w-[800px] h-[300px] md:h-[400px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
-      >
+      <div className="w-full md:w-[800px] h-[300px] md:h-[400px] bg-[#0F8A3C] rounded-lg relative overflow-hidden">
         <div 
           className="absolute inset-0 p-4"
           onDragOver={handleDragOver}
@@ -202,8 +204,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 potentialDropTarget === card ? 'ring-4 ring-casino-gold ring-opacity-50' : ''
               }`}
               style={{
-                left: Math.min(Math.max(card.tableX || 0, 0), 720) + 'px',
-                top: Math.min(Math.max(card.tableY || 0, 0), 320) + 'px',
+                left: Math.min(Math.max(card.tableX || 20, 20), 232) + 'px',
+                top: Math.min(Math.max(card.tableY || 20, 20), 216) + 'px',
                 zIndex: isDraggingTable ? 1000 : 1,
               }}
               draggable={isPlayerTurn}
@@ -227,8 +229,8 @@ export const TableArea: React.FC<TableAreaProps> = ({
               key={`build-${buildIndex}`}
               className="absolute"
               style={{
-                left: Math.min(Math.max(build.position.x, 0), 720) + 'px',
-                top: Math.min(Math.max(build.position.y, 0), 320) + 'px',
+                left: Math.min(Math.max(build.position.x || 20, 20), 232) + 'px',
+                top: Math.min(Math.max(build.position.y || 20, 20), 216) + 'px',
                 zIndex: 2
               }}
             >

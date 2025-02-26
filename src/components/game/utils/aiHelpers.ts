@@ -26,7 +26,19 @@ const TABLE_PADDING = 20; // Padding from table edges
 const CARD_WIDTH = 48;
 const CARD_HEIGHT = 64;
 
-export const getRandomTablePosition = (tableWidth: number, tableHeight: number) => {
+// For mobile screens
+const MOBILE_TABLE_WIDTH = 300;
+const MOBILE_TABLE_HEIGHT = 300;
+
+// For desktop screens
+const DESKTOP_TABLE_WIDTH = 800;
+const DESKTOP_TABLE_HEIGHT = 400;
+
+export const getRandomTablePosition = () => {
+  // Use mobile dimensions as default for safety
+  const tableWidth = MOBILE_TABLE_WIDTH;
+  const tableHeight = MOBILE_TABLE_HEIGHT;
+  
   // Calculate safe boundaries that keep cards fully within the table
   const minX = TABLE_PADDING;
   const maxX = tableWidth - CARD_WIDTH - TABLE_PADDING;
@@ -45,11 +57,7 @@ export const handleAIDiscard = (
   tableCards: Card[],
   setTableCards: (cards: Card[]) => void
 ) => {
-  // Use standard table dimensions, adjust these if your table size differs
-  const TABLE_WIDTH = 800;
-  const TABLE_HEIGHT = 400;
-  
-  const { x, y } = getRandomTablePosition(TABLE_WIDTH, TABLE_HEIGHT);
+  const { x, y } = getRandomTablePosition();
   
   setTableCards([...tableCards, { 
     ...card, 
