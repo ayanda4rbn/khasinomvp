@@ -6,7 +6,7 @@ export const SocialMediaLinks = () => {
   return (
     <div className="flex gap-4">
       <a 
-        href="htts://www.facebook.com/khasino.za" 
+        href="https://www.facebook.com/khasino.za" 
         target="_blank" 
         rel="noopener noreferrer"
         className="text-white hover:text-casino-gold transition-colors cursor-pointer"
@@ -14,7 +14,7 @@ export const SocialMediaLinks = () => {
         <Facebook className="w-5 h-5" />
       </a>
       <a 
-        href="htts://www.youtube.com/@khasinoZA" 
+        href="https://www.youtube.com/@khasinoZA" 
         target="_blank" 
         rel="noopener noreferrer"
         className="text-white hover:text-casino-gold transition-colors cursor-pointer"
@@ -22,7 +22,7 @@ export const SocialMediaLinks = () => {
         <Youtube className="w-5 h-5" />
       </a>
       <a 
-        href="htts://www.instagram.com/khasino.za" 
+        href="https://www.instagram.com/khasino.za" 
         target="_blank" 
         rel="noopener noreferrer"
         className="text-white hover:text-casino-gold transition-colors cursor-pointer"
