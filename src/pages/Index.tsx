@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Heart, Spade } from "lucide-react";
@@ -36,12 +37,13 @@ const Index = () => {
       <header className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
           <Spade className="w-8 h-8 text-casino-gold" />
-          <span className="text-2xl font-bold text-white">Cassino</span>
+          <span className="text-2xl font-bold text-white">Khasino</span>
         </div>
         <div className="flex items-center gap-6">
           <Button 
             variant="link" 
             className="text-white hover:text-casino-gold"
+            onClick={() => window.open("https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4", "_blank")}
           >
             Rules
           </Button>
@@ -51,8 +53,8 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="text-center space-y-8 z-10">
-        <h1 className="text-6xl font-bold text-white mb-4">Welcome to Cassino</h1>
-        <p className="text-xl text-casino-gold mb-8">The #1 Free Casino Game</p>
+        <h1 className="text-6xl font-bold text-white mb-4">Welcome to Khasino</h1>
+        <p className="text-xl text-casino-gold mb-8">The #1 Free Khasino Game</p>
         <div className="space-x-4">
           <Button 
             onClick={() => setGuestDialogOpen(true)} 
@@ -98,7 +100,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="w-full p-4 text-center">
-        <span className="text-white opacity-75">© 2024 Cassino. All rights reserved.</span>
+        <span className="text-white opacity-75">© 2024 Khasino. All rights reserved.</span>
       </footer>
     </div>
   );

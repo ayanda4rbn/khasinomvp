@@ -104,13 +104,13 @@ const Login = () => {
           onClick={() => navigate("/")}
         >
           <Spade className="w-8 h-8 text-casino-gold" />
-          <span className="text-2xl font-bold text-white">Cassino</span>
+          <span className="text-2xl font-bold text-white">Khasino</span>
         </div>
         <div className="flex items-center gap-6">
           <Button 
             variant="link" 
             className="text-white hover:text-casino-gold"
-            onClick={() => {/* Add rules modal here */}}
+            onClick={() => window.open("https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4", "_blank")}
           >
             Rules
           </Button>
@@ -188,7 +188,7 @@ const Login = () => {
             </div>
             
             <h2 className="text-3xl font-bold text-center mb-6 text-white">
-              {isSignUp ? "Create Account" : "Login to Cassino"}
+              {isSignUp ? "Create Account" : "Login to Khasino"}
             </h2>
             
             <AuthForms
@@ -206,7 +206,7 @@ const Login = () => {
       </div>
 
       <div className="absolute bottom-4 text-white opacity-75">
-        © 2024 Cassino. All rights reserved.
+        © 2024 Khasino. All rights reserved.
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
+
 import React from 'react';
-import { Facebook, Youtube, Twitter, Instagram } from 'lucide-react';
+import { Facebook, Youtube, Instagram } from 'lucide-react';
 
 export const SocialMediaLinks = () => {
   return (
     <div className="flex gap-4">
       <a 
-        href="https://facebook.com" 
+        href="htts://www.facebook.com/khasino.za" 
         target="_blank" 
         rel="noopener noreferrer"
         className="text-white hover:text-casino-gold transition-colors cursor-pointer"
@@ -13,7 +14,7 @@ export const SocialMediaLinks = () => {
         <Facebook className="w-5 h-5" />
       </a>
       <a 
-        href="https://youtube.com" 
+        href="htts://www.youtube.com/@khasinoZA" 
         target="_blank" 
         rel="noopener noreferrer"
         className="text-white hover:text-casino-gold transition-colors cursor-pointer"
@@ -21,20 +22,12 @@ export const SocialMediaLinks = () => {
         <Youtube className="w-5 h-5" />
       </a>
       <a 
-        href="https://instagram.com" 
+        href="htts://www.instagram.com/khasino.za" 
         target="_blank" 
         rel="noopener noreferrer"
         className="text-white hover:text-casino-gold transition-colors cursor-pointer"
       >
         <Instagram className="w-5 h-5" />
-      </a>
-      <a 
-        href="https://twitter.com" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-white hover:text-casino-gold transition-colors cursor-pointer"
-      >
-        <Twitter className="w-5 h-5" />
       </a>
     </div>
   );
