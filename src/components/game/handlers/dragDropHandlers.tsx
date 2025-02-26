@@ -161,8 +161,10 @@ export const handleNewBuild = (
   }
 
   const buildValue = card.value + tableCard.value;
+  
+  // Check if player has enough cards for capturing
   if (playerHand.some(c => c.value === buildValue)) {
-    // Check if player has more than one card of the same value for capturing
+    // Check if player has more than one card of the capturing value
     const sameValueCards = playerHand.filter(c => c.value === buildValue);
     if (sameValueCards.length < 2) {
       toast.error("You need at least one more card to capture this build later!");
