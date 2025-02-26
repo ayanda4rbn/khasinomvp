@@ -13,16 +13,19 @@ export const calculateScore = (chowedCards: Card[]): GameScore => {
     total: 0
   };
 
-  // Add points from special cards first
-  score.total += score.aces; // 1 point per ace
-  if (score.mummy) score.total += 2; // 2 points for mummy
-  if (score.spy) score.total += 1; // 1 point for spy
+  // Calculate total score
+  let total = 0;
   
+  // Add points for special cards
+  total += score.aces; // 1 point per ace
+  if (score.mummy) total += 2; // 2 points for mummy
+  if (score.spy) total += 1; // 1 point for spy
+  
+  score.total = total;
   return score;
 };
 
 export const determineWinner = (playerScore: GameScore, aiScore: GameScore): GameSummary => {
-  // First calculate base scores without the card count bonuses
   let playerTotal = playerScore.total;
   let aiTotal = aiScore.total;
 
@@ -32,7 +35,6 @@ export const determineWinner = (playerScore: GameScore, aiScore: GameScore): Gam
   } else if (aiScore.cardsCount > playerScore.cardsCount) {
     aiTotal += 2;
   } else {
-    // Tie for cards - 1 point each
     playerTotal += 1;
     aiTotal += 1;
   }
@@ -43,11 +45,11 @@ export const determineWinner = (playerScore: GameScore, aiScore: GameScore): Gam
   } else if (aiScore.spadesCount > playerScore.spadesCount) {
     aiTotal += 2;
   } else {
-    // Tie for spades - 1 point each
     playerTotal += 1;
     aiTotal += 1;
   }
 
+  // Return final scores and winner
   return {
     playerScore: { ...playerScore, total: playerTotal },
     aiScore: { ...aiScore, total: aiTotal },
