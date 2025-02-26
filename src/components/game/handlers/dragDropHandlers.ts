@@ -1,4 +1,3 @@
-
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -8,6 +7,7 @@ export const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: numbe
     toast.error("It's not your turn!");
     return;
   }
+  console.log("[DRAG] Started dragging card:", index);
   e.dataTransfer.setData('text/plain', index.toString());
 };
 
@@ -22,6 +22,14 @@ export const handleBuildCapture = (
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[]
 ) => {
+  console.log("[BUILD-CAPTURE] Attempting to capture build:", {
+    cardUsed: { value: card.value, suit: card.suit },
+    buildValue: overlappingBuild.value,
+    buildCards: overlappingBuild.cards.map(c => ({ value: c.value, suit: c.suit })),
+    buildId: overlappingBuild.id,
+    buildOwner: overlappingBuild.owner
+  });
+
   setPlayerChowedCards(prev => [...prev, ...overlappingBuild.cards, card]);
   setBuilds(builds.filter(build => build.id !== overlappingBuild.id));
 
@@ -29,6 +37,13 @@ export const handleBuildCapture = (
   newPlayerHand.splice(cardIndex, 1);
   setPlayerHand(newPlayerHand);
   setIsPlayerTurn(false);
+
+  console.log("[BUILD-CAPTURE] Capture successful:", {
+    removedBuildId: overlappingBuild.id,
+    newHandSize: newPlayerHand.length,
+    remainingBuilds: builds.length - 1
+  });
+
   toast.success("You captured a build!");
 };
 
@@ -44,21 +59,39 @@ export const handleBuildAugment = async (
   builds: BuildType[],
   setPlayerChowedCards: React.Dispatch<React.SetStateAction<Card[]>>
 ): Promise<boolean> => {
+  console.log("[BUILD-AUGMENT] Attempting to augment build:", {
+    cardUsed: { value: card.value, suit: card.suit },
+    currentBuildValue: overlappingBuild.value,
+    buildCards: overlappingBuild.cards.map(c => ({ value: c.value, suit: c.suit })),
+    buildId: overlappingBuild.id
+  });
+
   const newBuildValue = overlappingBuild.value + card.value;
+  console.log("[BUILD-AUGMENT] New build value would be:", newBuildValue);
+
   const existingBuildOfSameValue = builds.find(b => 
     b.id !== overlappingBuild.id && b.value === newBuildValue
   );
 
   if (existingBuildOfSameValue) {
+    console.log("[BUILD-AUGMENT] Failed: Build of same value exists:", {
+      existingBuildId: existingBuildOfSameValue.id,
+      value: newBuildValue
+    });
     toast.error("Cannot create another build of the same value!");
     return false;
   }
 
   if (newBuildValue <= 10 && playerHand.some(c => c.value === newBuildValue)) {
+    console.log("[BUILD-AUGMENT] Valid augment detected:", {
+      newValue: newBuildValue,
+      hasMatchingCard: true
+    });
+
     const updatedCards = [
       ...overlappingBuild.cards,
       card
-    ].sort((a, b) => b.value - a.value); // Sort descending: higher values at bottom
+    ].sort((a, b) => b.value - a.value);
     
     const updatedBuild = {
       ...overlappingBuild,
@@ -72,9 +105,21 @@ export const handleBuildAugment = async (
     newPlayerHand.splice(cardIndex, 1);
     setPlayerHand(newPlayerHand);
     setIsPlayerTurn(false);
+
+    console.log("[BUILD-AUGMENT] Augment successful:", {
+      newBuildValue: newBuildValue,
+      updatedBuildId: updatedBuild.id,
+      newHandSize: newPlayerHand.length
+    });
+
     toast.success("You augmented a build!");
     return true;
   }
+
+  console.log("[BUILD-AUGMENT] Failed: Invalid augment", {
+    newValue: newBuildValue,
+    hasMatchingCard: playerHand.some(c => c.value === newBuildValue)
+  });
   return false;
 };
 
@@ -92,12 +137,27 @@ export const handleNewBuild = (
   tableCards: Card[],
   builds: BuildType[]
 ): boolean => {
+  console.log("[NEW-BUILD] Attempting to create build:", {
+    playedCard: { value: card.value, suit: card.suit },
+    targetCard: { value: overlappingCard.value, suit: overlappingCard.suit },
+    hasExistingBuild: hasPlayerBuild,
+    currentBuildsCount: builds.length
+  });
+
   if (card.value === overlappingCard.value) {
+    console.log("[NEW-BUILD] Equal value cards detected");
     const buildValue = card.value * 2;
     const hasMatchingCard = playerHand.some(c => c.value === buildValue);
     const existingBuild = builds.find(b => b.value === buildValue);
     const playerExistingBuild = builds.find(b => b.owner === 'player');
     
+    console.log("[NEW-BUILD] Build validation:", {
+      buildValue,
+      hasMatchingCard,
+      hasExistingBuildOfSameValue: !!existingBuild,
+      hasPlayerBuild: !!playerExistingBuild
+    });
+
     if (overlappingCard.value <= 5) {
       if (playerExistingBuild && buildValue !== playerExistingBuild.value) {
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
@@ -199,9 +259,20 @@ export const handleNewBuild = (
   }
 
   const buildValue = card.value + overlappingCard.value;
+  console.log("[NEW-BUILD] Attempting combined value build:", {
+    combinedValue: buildValue,
+    hasMatchingCard: playerHand.some(c => c.value === buildValue)
+  });
+
   const existingBuild = builds.find(b => b.value === buildValue);
 
   if (existingBuild) {
+    console.log("[NEW-BUILD] Found existing build of same value:", {
+      buildId: existingBuild.id,
+      owner: existingBuild.owner,
+      value: buildValue
+    });
+
     if (existingBuild.owner === 'player') {
       // For compound builds, append new combination without sorting
       const updatedBuild = {
@@ -223,7 +294,12 @@ export const handleNewBuild = (
   }
 
   if (buildValue <= 10 && playerHand.some(c => c.value === buildValue)) {
-    const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value); // Higher values at bottom for new builds
+    console.log("[NEW-BUILD] Creating new build:", {
+      value: buildValue,
+      cards: [card, overlappingCard].map(c => ({ value: c.value, suit: c.suit }))
+    });
+
+    const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
     const newBuild: BuildType = {
       id: Date.now(),
       cards: buildCards,
@@ -238,9 +314,21 @@ export const handleNewBuild = (
     newPlayerHand.splice(cardIndex, 1);
     setPlayerHand(newPlayerHand);
     setIsPlayerTurn(false);
+
+    console.log("[NEW-BUILD] Build created successfully:", {
+      buildId: newBuild.id,
+      value: buildValue,
+      position: newBuild.position
+    });
+
     toast.success(`Created a build of ${buildValue}`);
     return true;
   }
+
+  console.log("[NEW-BUILD] Invalid build attempt:", {
+    reason: "No matching card in hand",
+    attemptedValue: buildValue
+  });
 
   toast.error("Invalid build! You must have a card matching the build value.");
   return false;
