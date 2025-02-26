@@ -6,7 +6,8 @@ import { CardSelection } from "@/components/game/CardSelection";
 import { GameBoard } from "@/components/game/GameBoard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getStandardDeck, shuffleDeck, dealCards } from "@/components/game/utils/deckManager";
+import { shuffleDeck, dealCards } from "@/components/game/utils/deckManager";
+import { getStandardDeck } from "@/components/game/utils/deckCore";
 
 const Game = () => {
   const navigate = useNavigate();
