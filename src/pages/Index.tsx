@@ -31,13 +31,13 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-between bg-casino-green relative overflow-hidden">
       {/* Background Suit Symbols */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         <Heart className="absolute top-[10%] left-[10%] w-32 h-32" />
         <Spade className="absolute bottom-[40%] right-[10%] w-32 h-32" />
       </div>
       
       {/* Header */}
-      <header className="w-full p-4 flex justify-between items-center">
+      <header className="w-full p-4 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
           <Spade className="w-8 h-8 text-casino-gold" />
           <span className="text-2xl font-bold text-white">Khasino</span>
@@ -47,7 +47,7 @@ const Index = () => {
             href="https://orchid-hemisphere-162.notion.site/Rules-Ver-2-084f1c0258b2469283cf51aba325f23a?pvs=4"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-white hover:text-casino-gold hover:bg-white/10 transition-colors cursor-pointer px-4 py-2 rounded-md"
+            className="text-white hover:text-casino-gold hover:bg-white/10 transition-colors cursor-pointer px-4 py-2 rounded-md relative z-20"
           >
             Rules
           </a>
