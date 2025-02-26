@@ -1,3 +1,4 @@
+
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
 
@@ -158,6 +159,37 @@ export const handleNewBuild = (
       hasPlayerBuild: !!playerExistingBuild
     });
 
+    // First check if we can create a new build with the matching card
+    if (hasMatchingCard && !hasPlayerBuild) {
+      const shouldBuild = window.confirm(
+        `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
+      );
+
+      if (shouldBuild) {
+        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+      } else {
+        const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
+        const newBuild: BuildType = {
+          id: Date.now(),
+          cards: buildCards,
+          value: buildValue,
+          position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
+          owner: 'player'
+        };
+        setBuilds([...builds, newBuild]);
+        setTableCards(tableCards.filter(c => c !== overlappingCard));
+        toast.success(`Created a build of ${buildValue}`);
+      }
+      
+      const newPlayerHand = [...playerHand];
+      newPlayerHand.splice(cardIndex, 1);
+      setPlayerHand(newPlayerHand);
+      setIsPlayerTurn(false);
+      return true;
+    }
+
+    // Then check for existing builds
     if (existingBuild) {
       if (existingBuild.owner === 'player') {
         const shouldAdd = window.confirm(
@@ -168,13 +200,13 @@ export const handleNewBuild = (
           setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
           setTableCards(tableCards.filter(c => c !== overlappingCard));
         } else {
-          // For compound builds, append new combination without sorting
           const updatedBuild = {
             ...existingBuild,
             cards: [...existingBuild.cards, card, overlappingCard],
           };
           setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
           setTableCards(tableCards.filter(c => c !== overlappingCard));
+          toast.success(`Added to your ${buildValue} build`);
         }
       } else {
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
@@ -188,35 +220,8 @@ export const handleNewBuild = (
       setIsPlayerTurn(false);
       return true;
     }
-    
-    if (hasMatchingCard) {
-      const shouldBuild = window.confirm(
-        `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
-      );
 
-      if (shouldBuild) {
-        setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-      } else {
-        const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value); // Higher values at bottom for new builds
-        const newBuild: BuildType = {
-          id: Date.now(),
-          cards: buildCards,
-          value: buildValue,
-          position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
-          owner: 'player'
-        };
-        setBuilds([...builds, newBuild]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
-      }
-      
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      return true;
-    }
-
+    // If no build is possible, automatically chow the equal cards
     setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
     setTableCards(tableCards.filter(c => c !== overlappingCard));
     const newPlayerHand = [...playerHand];
@@ -243,7 +248,6 @@ export const handleNewBuild = (
     });
 
     if (existingBuild.owner === 'player') {
-      // For compound builds, append new combination without sorting
       const updatedBuild = {
         ...existingBuild,
         cards: [...existingBuild.cards, card, overlappingCard],
