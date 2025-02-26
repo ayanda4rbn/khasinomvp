@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Card, BuildType } from '@/types/game';
@@ -70,8 +69,18 @@ export const handleBuildCapture = (
     };
 
     const handleConfirmDrift = () => {
-      // Just remove the card from hand but don't add to chowed cards
+      // Remove card from hand
       setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
+      
+      // Add the card to the top of the build
+      const updatedBuild: BuildType = {
+        ...build,
+        cards: [...build.cards, { ...card, playedBy: 'player' }],
+      };
+      
+      // Update the builds array, replacing the old build with the updated one
+      setBuilds(builds.map(b => b.id === build.id ? updatedBuild : b));
+      
       setIsPlayerTurn(false);
       cleanup();
       toast.success("Drifting with the card!");
