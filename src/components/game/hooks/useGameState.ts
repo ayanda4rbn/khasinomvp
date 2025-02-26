@@ -78,6 +78,26 @@ export const useGameState = (
   const [gameSummary, setGameSummary] = useState<GameSummary | null>(null);
   const [lastChowedBy, setLastChowedBy] = useState<'player' | 'ai'>(playerGoesFirst ? 'player' : 'ai');
 
+  // Update lastChowedBy when cards are chowed
+  const updateLastChowed = (who: 'player' | 'ai') => {
+    setLastChowedBy(who);
+  };
+
+  // Wrap the setPlayerChowedCards and setAiChowedCards to track who chowed last
+  const wrappedSetPlayerChowedCards: typeof setPlayerChowedCards = (value) => {
+    setPlayerChowedCards(value);
+    if (typeof value !== 'function' || value.length > playerChowedCards.length) {
+      updateLastChowed('player');
+    }
+  };
+
+  const wrappedSetAiChowedCards: typeof setAiChowedCards = (value) => {
+    setAiChowedCards(value);
+    if (typeof value !== 'function' || value.length > aiChowedCards.length) {
+      updateLastChowed('ai');
+    }
+  };
+
   const calculateGameSummary = () => {
     // First, add any remaining table cards to the last player who chowed
     let finalPlayerChowedCards = [...playerChowedCards];
@@ -138,9 +158,9 @@ export const useGameState = (
     builds,
     setBuilds,
     playerChowedCards,
-    setPlayerChowedCards,
+    setPlayerChowedCards: wrappedSetPlayerChowedCards,
     aiChowedCards,
-    setAiChowedCards,
+    setAiChowedCards: wrappedSetAiChowedCards,
     gameSummary,
     calculateGameSummary,
     dealNewRound,
