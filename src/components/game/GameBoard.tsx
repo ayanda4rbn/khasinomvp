@@ -63,39 +63,35 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   }, [gameState.isPlayerTurn, gameState.tableCards, gameState.aiHand, gameState.builds]);
 
   useEffect(() => {
-    if (gameState.playerHand.length === 0 && gameState.aiHand.length === 0 && gameState.currentRound === 1) {
-      const timer = setTimeout(() => {
-        gameState.setCurrentRound(2);
-        gameState.dealNewRound();
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [gameState.playerHand.length, gameState.aiHand.length, gameState.currentRound]);
-
-  useEffect(() => {
-    if (gameState.playerChowedCards.length > 0) {
-      gameState.setLastChowedBy('player');
-    } else if (gameState.aiChowedCards.length > 0) {
-      gameState.setLastChowedBy('ai');
-    }
-  }, [gameState.playerChowedCards.length, gameState.aiChowedCards.length]);
-
-  useEffect(() => {
-    if (gameState.currentRound === 2 && 
-        gameState.playerHand.length === 0 && 
-        gameState.aiHand.length === 0) {
-      if (gameState.tableCards.length > 0) {
-        if (gameState.lastChowedBy === 'player') {
-          gameState.setPlayerChowedCards(prev => [...prev, ...gameState.tableCards]);
-        } else {
-          gameState.setAiChowedCards(prev => [...prev, ...gameState.tableCards]);
+    if (gameState.playerHand.length === 0 && gameState.aiHand.length === 0) {
+      if (gameState.currentRound === 1) {
+        const timer = setTimeout(() => {
+          gameState.setCurrentRound(2);
+          gameState.dealNewRound();
+        }, 1500);
+        return () => clearTimeout(timer);
+      } else if (gameState.currentRound === 2) {
+        // Check who made the last capture and give them the remaining table cards
+        if (gameState.tableCards.length > 0) {
+          const lastChower = gameState.lastChowedBy;
+          console.log("Game ending - Last capture was by:", lastChower);
+          console.log("Remaining table cards:", gameState.tableCards.length);
+          
+          if (lastChower === 'player') {
+            gameState.setPlayerChowedCards(prev => [...prev, ...gameState.tableCards]);
+            toast.success("Remaining cards go to player (last to capture)");
+          } else {
+            gameState.setAiChowedCards(prev => [...prev, ...gameState.tableCards]);
+            toast.success("Remaining cards go to AI (last to capture)");
+          }
+          gameState.setTableCards([]);
         }
-        gameState.setTableCards([]);
+        
+        // Calculate final game summary
+        setTimeout(() => {
+          gameState.calculateGameSummary();
+        }, 100);
       }
-      
-      setTimeout(() => {
-        gameState.calculateGameSummary();
-      }, 100);
     }
   }, [gameState.currentRound, gameState.playerHand.length, gameState.aiHand.length]);
 
