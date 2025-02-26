@@ -138,6 +138,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     });
 
     const hasPlayerBuild = gameState.builds.some(build => build.owner === 'player');
+    const playerBuildValue = hasPlayerBuild ? 
+      gameState.builds.find(build => build.owner === 'player')?.value : 
+      null;
     
     if (overlappingBuild) {
       // First check if this is a capture attempt (equal values)
@@ -195,6 +198,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         return;
       }
     } else {
+      // Check if player is trying to discard their last matching card for a build
+      if (hasPlayerBuild && playerBuildValue === card.value) {
+        const matchingCardsInHand = gameState.playerHand.filter(c => c.value === card.value).length;
+        if (matchingCardsInHand <= 1) {
+          toast.error("Cannot discard your last card matching your build value!");
+          return;
+        }
+      }
+
       if (gameState.currentRound === 1 && hasPlayerBuild) {
         toast.error("You cannot discard when you have an existing build in round 1!");
         return;
