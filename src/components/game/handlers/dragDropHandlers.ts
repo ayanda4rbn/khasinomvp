@@ -101,34 +101,46 @@ export const handleNewBuild = (
     const existingBuild = builds.find(b => b.value === buildValue);
     
     // If the overlapping card belongs to opponent's build and its value is ≤ 5
-    if (overlappingCard.value <= 5 && hasMatchingCard && !existingBuild) {
-      const shouldChow = window.confirm(
-        `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
-      );
-
-      if (shouldChow) {
-        // Handle chow
+    if (overlappingCard.value <= 5) {
+      // If player already has a build, automatically chow
+      if (hasPlayerBuild) {
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
-      } else {
-        // Create new build
-        const buildCards = [overlappingCard, card];
-        const newBuild: BuildType = {
-          id: Date.now(),
-          cards: buildCards,
-          value: buildValue,
-          position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
-          owner: 'player'
-        };
-        setBuilds([...builds, newBuild]);
-        setTableCards(tableCards.filter(c => c !== overlappingCard));
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+        setIsPlayerTurn(false);
+        toast.success("Cards chowed!");
+        return true;
       }
-      
-      const newPlayerHand = [...playerHand];
-      newPlayerHand.splice(cardIndex, 1);
-      setPlayerHand(newPlayerHand);
-      setIsPlayerTurn(false);
-      return true;
+      // Only show build option if no existing build and player has matching card
+      else if (hasMatchingCard && !existingBuild) {
+        const shouldChow = window.confirm(
+          `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
+        );
+
+        if (shouldChow) {
+          setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
+          setTableCards(tableCards.filter(c => c !== overlappingCard));
+        } else {
+          const buildCards = [overlappingCard, card];
+          const newBuild: BuildType = {
+            id: Date.now(),
+            cards: buildCards,
+            value: buildValue,
+            position: { x: overlappingCard.tableX || 0, y: overlappingCard.tableY || 0 },
+            owner: 'player'
+          };
+          setBuilds([...builds, newBuild]);
+          setTableCards(tableCards.filter(c => c !== overlappingCard));
+        }
+        
+        const newPlayerHand = [...playerHand];
+        newPlayerHand.splice(cardIndex, 1);
+        setPlayerHand(newPlayerHand);
+        setIsPlayerTurn(false);
+        return true;
+      }
     }
     
     // If there's an existing build of this value
