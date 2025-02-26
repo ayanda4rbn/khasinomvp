@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -205,9 +204,6 @@ export const TableArea: React.FC<TableAreaProps> = ({
                   : 'bg-[#ea384c] text-white'
               }`}>
                 {build.value}
-              </div>
-              <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">
-                {build.owner === 'player' ? playerName : 'AI'}
               </div>
             </div>
           ))}
