@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/types/game';
 import { TableArea } from './TableArea';
@@ -10,6 +9,7 @@ import { AIHand } from './AIHand';
 import { useGameState } from './hooks/useGameState';
 import { handleDragStart, handleBuildCapture, handleBuildAugment, handleNewBuild } from './handlers/dragDropHandlers';
 import { GameSummaryDialog } from './GameSummaryDialog';
+import ReactDOM from 'react-dom';
 
 interface GameBoardProps {
   playerGoesFirst: boolean;
@@ -101,6 +101,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const cardIndex = parseInt(e.dataTransfer.getData('text/plain'));
     const card = gameState.playerHand[cardIndex];
     
+    // Check if trying to discard card that's needed for builds
+    const isCardNeededForBuilds = gameState.builds.some(build => 
+      build.owner === 'player' && build.value === card.value &&
+      gameState.playerHand.filter(c => c.value === card.value).length <= 1
+    );
+
     const tableRect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - tableRect.left;
     const y = e.clientY - tableRect.top;
@@ -147,7 +153,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           gameState.setPlayerHand,
           gameState.setIsPlayerTurn,
           gameState.builds,
-          gameState.playerChowedCards  // Added the missing parameter
+          gameState.playerChowedCards
         );
         setHasPlayedCard(true);
         return;
@@ -190,6 +196,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         return;
       }
     } else {
+      if (isCardNeededForBuilds) {
+        toast.error("You cannot discard this card as it's needed to capture a build!");
+        return;
+      }
+
       if (gameState.currentRound === 1 && hasPlayerBuild) {
         toast.error("You cannot discard when you have an existing build in round 1!");
         return;

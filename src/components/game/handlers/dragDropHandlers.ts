@@ -1,6 +1,14 @@
 
 import { Card, BuildType } from '@/types/game';
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 export const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number, isPlayerTurn: boolean) => {
   if (!isPlayerTurn) {
@@ -9,6 +17,29 @@ export const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: numbe
   }
   e.dataTransfer.setData('text/plain', index.toString());
 };
+
+const DriftDialog = ({ 
+  onConfirm, 
+  onCancel, 
+  open 
+}: { 
+  onConfirm: () => void; 
+  onCancel: () => void; 
+  open: boolean;
+}) => (
+  <AlertDialog open={open}>
+    <AlertDialogContent>
+      <AlertDialogTitle>Drift Option</AlertDialogTitle>
+      <AlertDialogDescription>
+        You have another card of the same value. Would you like to drift (leave the cards on the table)?
+      </AlertDialogDescription>
+      <div className="flex justify-end space-x-2">
+        <AlertDialogCancel onClick={onCancel}>No, take cards</AlertDialogCancel>
+        <AlertDialogAction onClick={onConfirm}>Yes, drift</AlertDialogAction>
+      </div>
+    </AlertDialogContent>
+  </AlertDialog>
+);
 
 export const handleBuildCapture = (
   card: Card,
@@ -20,17 +51,58 @@ export const handleBuildCapture = (
   setPlayerHand: (hand: Card[]) => void,
   setIsPlayerTurn: (isPlayerTurn: boolean) => void,
   builds: BuildType[],
-  playerChowedCards: Card[]  // Added this parameter
+  playerChowedCards: Card[]
 ) => {
-  // Create a new array with all cards to be chowed
-  const newChowedCards = card ? [...build.cards, card] : build.cards;
-  
-  // Create a new array combining existing and new chowed cards
-  setPlayerChowedCards([...playerChowedCards, ...newChowedCards]);
-  setBuilds(builds.filter(b => b.id !== build.id));
-  setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
-  setIsPlayerTurn(false);
-  toast.success("You captured a build!");
+  // Check if player has another card of the same value
+  const hasAnotherSameValueCard = playerHand.some((c, i) => 
+    i !== cardIndex && c.value === card.value
+  );
+
+  if (hasAnotherSameValueCard) {
+    // Show drift dialog
+    const driftDialog = document.createElement('div');
+    document.body.appendChild(driftDialog);
+
+    const cleanup = () => {
+      document.body.removeChild(driftDialog);
+    };
+
+    const handleConfirmDrift = () => {
+      // Just remove the card from hand but don't add to chowed cards
+      setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
+      setIsPlayerTurn(false);
+      cleanup();
+      toast.success("Drifting with the card!");
+    };
+
+    const handleCancelDrift = () => {
+      // Normal capture behavior
+      const newChowedCards = [...build.cards, card];
+      setPlayerChowedCards([...playerChowedCards, ...newChowedCards]);
+      setBuilds(builds.filter(b => b.id !== build.id));
+      setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
+      setIsPlayerTurn(false);
+      cleanup();
+      toast.success("Cards captured!");
+    };
+
+    const root = ReactDOM.createRoot(driftDialog);
+    root.render(
+      <DriftDialog
+        open={true}
+        onConfirm={handleConfirmDrift}
+        onCancel={handleCancelDrift}
+      />
+    );
+  } else {
+    // Normal capture behavior without drift option
+    const newChowedCards = [...build.cards, card];
+    setPlayerChowedCards([...playerChowedCards, ...newChowedCards]);
+    setBuilds(builds.filter(b => b.id !== build.id));
+    setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
+    setIsPlayerTurn(false);
+    toast.success("Cards captured!");
+  }
 };
 
 export const handleBuildAugment = (
@@ -54,7 +126,7 @@ export const handleBuildAugment = (
       ...build,
       cards: [...build.cards, card],
       value: newSum,
-      owner: 'player' // Transfer ownership to the player
+      owner: 'player'
     };
 
     setBuilds(builds.map(b => b.id === build.id ? updatedBuild : b));
@@ -88,6 +160,13 @@ export const handleNewBuild = (
 
   const buildValue = card.value + tableCard.value;
   if (playerHand.some(c => c.value === buildValue)) {
+    // Check if player has more than one card of the same value for capturing
+    const sameValueCards = playerHand.filter(c => c.value === buildValue);
+    if (sameValueCards.length < 2) {
+      toast.error("You need at least one more card to capture this build later!");
+      return false;
+    }
+
     const x = Math.random() * 400 + 50;
     const y = Math.random() * 200 + 50;
 
