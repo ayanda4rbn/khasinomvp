@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/types/game";
@@ -7,6 +8,30 @@ import { GameBoard } from "@/components/game/GameBoard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getStandardDeck, shuffleDeck, dealCards } from "@/components/game/utils/deckManager";
+
+// Utility function to get unique value cards
+const getUniqueValueCards = (deck: Card[], count: number): { uniqueCards: Card[], remainingDeck: Card[] } => {
+  let uniqueCards: Card[] = [];
+  let tempDeck = [...deck];
+  const usedValues = new Set<number>();
+
+  while (uniqueCards.length < count && tempDeck.length > 0) {
+    const currentCard = tempDeck[0];
+    if (!usedValues.has(currentCard.value)) {
+      usedValues.add(currentCard.value);
+      uniqueCards.push(currentCard);
+      tempDeck = tempDeck.slice(1);
+    } else {
+      // Move the card to the end of the deck
+      tempDeck = [...tempDeck.slice(1), tempDeck[0]];
+    }
+  }
+
+  return {
+    uniqueCards,
+    remainingDeck: tempDeck
+  };
+};
 
 const Game = () => {
   const navigate = useNavigate();
@@ -38,9 +63,10 @@ const Game = () => {
     if (gameMode === "ai") {
       const freshDeck = getStandardDeck();
       const shuffledDeck = shuffleDeck(freshDeck);
-      const { dealt: selectedCards, remaining } = dealCards(shuffledDeck, 5);
-      setSelectionCards(selectedCards);
-      setGameDeck(remaining);
+      // Get 5 cards with unique values for selection
+      const { uniqueCards, remainingDeck } = getUniqueValueCards(shuffledDeck, 5);
+      setSelectionCards(uniqueCards);
+      setGameDeck(remainingDeck);
     }
   }, [gameMode]);
 
