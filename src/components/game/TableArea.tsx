@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -159,7 +158,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
 
         {/* Player's chowed cards */}
         <div className="flex items-center">
-          <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">{playerName}'s chowed</span>
+          <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">Chowed</span>
           <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-casino-gold rounded-lg relative">
             {playerChowedCards.map((card, index) => (
               <div 
@@ -183,6 +182,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
             onClick={onEndTurn}
             className="hidden md:block mt-4"
             disabled={!hasPlayedCard}
+            variant={hasPlayedCard ? "default" : "secondary"}
           >
             End Turn
           </Button>
@@ -261,9 +261,6 @@ export const TableArea: React.FC<TableAreaProps> = ({
               >
                 {build.value}
               </div>
-              <div className="absolute -bottom-2 -right-2 text-[10px] md:text-xs text-white bg-black/50 px-1 rounded">
-                {build.owner === 'player' ? playerName : 'AI'}
-              </div>
               {potentialDropTarget === build.cards[build.cards.length - 1] && (
                 <div className="absolute -top-2 -right-2 text-casino-gold z-[60]">
                   <PlusCircle className="w-6 h-6" />
@@ -280,6 +277,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
           onClick={onEndTurn}
           className="md:hidden w-full mt-2"
           disabled={!hasPlayedCard}
+          variant={hasPlayedCard ? "default" : "secondary"}
         >
           End Turn
         </Button>
