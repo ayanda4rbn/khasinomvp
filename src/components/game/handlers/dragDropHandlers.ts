@@ -24,7 +24,8 @@ export const handleBuildCapture = (
   // Create a new array with all cards to be chowed
   const newChowedCards = card ? [...build.cards, card] : build.cards;
   
-  setPlayerChowedCards(prevChowedCards => [...prevChowedCards, ...newChowedCards]);
+  // Instead of using a function to update state, pass the new array directly
+  setPlayerChowedCards([...playerChowedCards, ...newChowedCards]);
   setBuilds(builds.filter(b => b.id !== build.id));
   setPlayerHand(playerHand.filter((_, i) => i !== cardIndex));
   setIsPlayerTurn(false);
