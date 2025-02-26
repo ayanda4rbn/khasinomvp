@@ -12,7 +12,8 @@ export const findBestMove = (
   captureCards?: Card[],
   captureBuilds?: BuildType[],
   buildWith?: Card,
-  augmentBuild?: BuildType
+  augmentBuild?: BuildType,
+  existingBuild?: BuildType
 } | null => {
   // Priority 1: Capture valuable cards
   for (const aiCard of aiHand) {
@@ -63,6 +64,27 @@ export const findBestMove = (
             card: aiCard,
             buildWith: tableCard
           };
+        }
+      }
+    }
+  }
+
+  // Priority 3.5: Try to add to AI's existing build (compound build)
+  if (hasAIBuild) {
+    const aiBuild = builds.find(build => build.owner === 'ai');
+    if (aiBuild) {
+      for (const aiCard of aiHand) {
+        for (const tableCard of tableCards) {
+          const sum = aiCard.value + tableCard.value;
+          // Only add if sum equals build value and not making it a double
+          if (sum === aiBuild.value && sum < aiBuild.value * 2) {
+            return {
+              type: 'build',
+              card: aiCard,
+              buildWith: tableCard,
+              existingBuild: aiBuild
+            };
+          }
         }
       }
     }
