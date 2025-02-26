@@ -80,22 +80,38 @@ export const useGameState = (
   const [gameSummary, setGameSummary] = useState<GameSummary | null>(null);
   const [lastChowedBy, setLastChowedBy] = useState<'player' | 'ai'>(playerGoesFirst ? 'player' : 'ai');
 
-  // Update lastChowedBy when cards are chowed
   const updateLastChowed = (who: 'player' | 'ai') => {
     setLastChowedBy(who);
+    console.log("[CHOW] Last chowed by:", who);
   };
 
-  // Wrap the setPlayerChowedCards and setAiChowedCards to track who chowed last
-  const wrappedSetPlayerChowedCards: typeof setPlayerChowedCards = (value) => {
-    setPlayerChowedCards(value);
-    if (typeof value !== 'function' || value.length > playerChowedCards.length) {
+  // New wrapper that only updates lastChowedBy when actually chowing cards
+  const wrappedSetPlayerChowedCards = (newValue: Card[] | ((prev: Card[]) => Card[])) => {
+    setPlayerChowedCards(newValue);
+    if (typeof newValue === 'function') {
+      setPlayerChowedCards(prev => {
+        const result = newValue(prev);
+        if (result.length > prev.length) {
+          updateLastChowed('player');
+        }
+        return result;
+      });
+    } else if (newValue.length > playerChowedCards.length) {
       updateLastChowed('player');
     }
   };
 
-  const wrappedSetAiChowedCards: typeof setAiChowedCards = (value) => {
-    setAiChowedCards(value);
-    if (typeof value !== 'function' || value.length > aiChowedCards.length) {
+  const wrappedSetAiChowedCards = (newValue: Card[] | ((prev: Card[]) => Card[])) => {
+    setAiChowedCards(newValue);
+    if (typeof newValue === 'function') {
+      setAiChowedCards(prev => {
+        const result = newValue(prev);
+        if (result.length > prev.length) {
+          updateLastChowed('ai');
+        }
+        return result;
+      });
+    } else if (newValue.length > aiChowedCards.length) {
       updateLastChowed('ai');
     }
   };
@@ -104,6 +120,9 @@ export const useGameState = (
     // First, add any remaining table cards to the last player who chowed
     let finalPlayerChowedCards = [...playerChowedCards];
     let finalAiChowedCards = [...aiChowedCards];
+
+    console.log("[GAME-END] Last chowed by:", lastChowedBy);
+    console.log("[GAME-END] Remaining table cards:", tableCards.length);
 
     if (lastChowedBy === 'player') {
       finalPlayerChowedCards = [...finalPlayerChowedCards, ...tableCards];
@@ -115,6 +134,13 @@ export const useGameState = (
     const playerScore = calculateScore(finalPlayerChowedCards);
     const aiScore = calculateScore(finalAiChowedCards);
     const summary = determineWinner(playerScore, aiScore);
+    
+    console.log("[GAME-END] Final card counts:", {
+      player: finalPlayerChowedCards.length,
+      ai: finalAiChowedCards.length,
+      total: finalPlayerChowedCards.length + finalAiChowedCards.length
+    });
+    
     setGameSummary(summary);
     setShowGameSummary(true);
   };
