@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, BuildType } from '@/types/game';
 import { CardComponent } from './CardComponent';
@@ -111,7 +112,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
         {/* Player's chowed cards */}
         <div className="flex items-center">
           <span className="text-white mr-2 text-sm md:text-base whitespace-nowrap">{playerName}'s chowed</span>
-          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-[#FEF7CD] rounded-lg relative">
+          <div className="w-10 h-14 md:w-12 md:h-16 border-2 border-[#FFD700] rounded-lg relative">
             {playerChowedCards.map((card, index) => (
               <div 
                 key={`player-chowed-${index}`}
@@ -200,7 +201,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
               ))}
               <div className={`absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs md:text-sm font-bold z-50 ${
                 build.owner === 'player' 
-                  ? 'bg-[#FEF7CD] text-black' 
+                  ? 'bg-[#FFD700] text-black' 
                   : 'bg-[#ea384c] text-white'
               }`}>
                 {build.value}
