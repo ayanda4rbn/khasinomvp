@@ -89,11 +89,11 @@ export const handleBuildAugment = async (
       hasMatchingCard: true
     });
 
-    // Sort cards by value in descending order
+    // Only sort the new card with its pair if it exists
     const updatedCards = [
       ...overlappingBuild.cards,
       card
-    ].sort((a, b) => b.value - a.value);
+    ];
     
     const updatedBuild = {
       ...overlappingBuild,
@@ -169,7 +169,7 @@ export const handleNewBuild = (
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
       } else {
-        // Sort cards by value in descending order
+        // Sort only the initial pair of cards
         const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
         const newBuild: BuildType = {
           id: Date.now(),
@@ -200,11 +200,11 @@ export const handleNewBuild = (
           setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
           setTableCards(tableCards.filter(c => c !== overlappingCard));
         } else {
-          // Sort all cards by value in descending order when adding to existing build
-          const updatedCards = [...existingBuild.cards, card, overlappingCard].sort((a, b) => b.value - a.value);
+          // Sort only the new pair being added
+          const newPair = [card, overlappingCard].sort((a, b) => b.value - a.value);
           const updatedBuild = {
             ...existingBuild,
-            cards: updatedCards,
+            cards: [...existingBuild.cards, ...newPair],
           };
           setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
           setTableCards(tableCards.filter(c => c !== overlappingCard));
@@ -249,11 +249,11 @@ export const handleNewBuild = (
     });
 
     if (existingBuild.owner === 'player') {
-      // Sort all cards by value in descending order
-      const updatedCards = [...existingBuild.cards, card, overlappingCard].sort((a, b) => b.value - a.value);
+      // Sort only the new pair being added
+      const newPair = [card, overlappingCard].sort((a, b) => b.value - a.value);
       const updatedBuild = {
         ...existingBuild,
-        cards: updatedCards,
+        cards: [...existingBuild.cards, ...newPair],
       };
       setBuilds(builds.map(b => b.id === existingBuild.id ? updatedBuild : b));
       setTableCards(tableCards.filter(c => c !== overlappingCard));
@@ -275,7 +275,7 @@ export const handleNewBuild = (
       cards: [card, overlappingCard].map(c => ({ value: c.value, suit: c.suit }))
     });
 
-    // Sort cards by value in descending order
+    // Sort only the initial pair of cards
     const buildCards = [card, overlappingCard].sort((a, b) => b.value - a.value);
     const newBuild: BuildType = {
       id: Date.now(),
