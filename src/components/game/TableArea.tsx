@@ -32,6 +32,65 @@ export const TableArea: React.FC<TableAreaProps> = ({
   const [isDraggingTable, setIsDraggingTable] = useState(false);
   const [potentialDropTarget, setPotentialDropTarget] = useState<Card | null>(null);
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    
+    // Get table dimensions
+    const tableRect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - tableRect.left;
+    const y = e.clientY - tableRect.top;
+    
+    // Define boundaries
+    const CARD_WIDTH = 48;
+    const CARD_HEIGHT = 64;
+    const PADDING = 20;
+    
+    // Check if the cursor is within the safe drop zone
+    const isWithinBounds = 
+      x >= PADDING &&
+      x <= tableRect.width - CARD_WIDTH - PADDING &&
+      y >= PADDING &&
+      y <= tableRect.height - CARD_HEIGHT - PADDING;
+    
+    // Only allow dropping within bounds
+    if (!isWithinBounds) {
+      e.dataTransfer.dropEffect = 'none';
+    } else {
+      e.dataTransfer.dropEffect = 'move';
+    }
+  };
+
+  const constrainPosition = (x: number, y: number, tableRect: DOMRect) => {
+    const CARD_WIDTH = 48;
+    const CARD_HEIGHT = 64;
+    const PADDING = 20;
+    
+    return {
+      x: Math.max(PADDING, Math.min(x, tableRect.width - CARD_WIDTH - PADDING)),
+      y: Math.max(PADDING, Math.min(y, tableRect.height - CARD_HEIGHT - PADDING))
+    };
+  };
+
+  const handleTableDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    
+    const tableRect = e.currentTarget.getBoundingClientRect();
+    const rawX = e.clientX - tableRect.left;
+    const rawY = e.clientY - tableRect.top;
+    
+    // Constrain the position within table boundaries
+    const { x, y } = constrainPosition(rawX, rawY, tableRect);
+    
+    // Create a new drop event with the constrained coordinates
+    const newEvent = new DragEvent('drop', {
+      ...e,
+      clientX: tableRect.left + x,
+      clientY: tableRect.top + y
+    });
+    
+    onDrop(newEvent);
+  };
+
   const handleCardClick = (card: Card) => {
     if (!isPlayerTurn) return;
 
@@ -143,10 +202,12 @@ export const TableArea: React.FC<TableAreaProps> = ({
       {/* Main Table */}
       <div 
         className="w-full md:w-[800px] h-[300px] md:h-[400px] bg-[#0F8A3C] rounded-lg relative overflow-hidden"
-        onDragOver={onDragOver}
-        onDrop={onDrop}
       >
-        <div className="absolute inset-0 p-4">
+        <div 
+          className="absolute inset-0 p-4"
+          onDragOver={handleDragOver}
+          onDrop={handleTableDrop}
+        >
           {/* Table cards */}
           {tableCards.map((card, index) => (
             <div
