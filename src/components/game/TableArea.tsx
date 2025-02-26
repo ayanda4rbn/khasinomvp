@@ -219,7 +219,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 isDraggable={isPlayerTurn}
               />
               {potentialDropTarget === card && (
-                <div className="absolute -top-2 right-8 text-casino-gold z-[60]">
+                <div className="absolute -top-2 -right-2 text-casino-gold z-[60]">
                   <PlusCircle className="w-6 h-6" />
                 </div>
               )}
@@ -260,7 +260,7 @@ export const TableArea: React.FC<TableAreaProps> = ({
                 {build.value}
               </div>
               {potentialDropTarget === build.cards[build.cards.length - 1] && (
-                <div className="absolute -top-2 right-8 text-casino-gold z-[60]">
+                <div className="absolute -top-2 -right-2 text-casino-gold z-[60]">
                   <PlusCircle className="w-6 h-6" />
                 </div>
               )}
