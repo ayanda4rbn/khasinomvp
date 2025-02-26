@@ -100,7 +100,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="w-full p-4 text-center">
-        <span className="text-white opacity-75">© 2024 Khasino. All rights reserved.</span>
+        <span className="text-white opacity-75">© {new Date().getFullYear()} Khasino. All rights reserved.</span>
       </footer>
     </div>
   );
