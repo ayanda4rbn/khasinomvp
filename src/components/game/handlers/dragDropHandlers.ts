@@ -99,11 +99,12 @@ export const handleNewBuild = (
     const buildValue = card.value * 2;
     const hasMatchingCard = playerHand.some(c => c.value === buildValue);
     const existingBuild = builds.find(b => b.value === buildValue);
+    const playerExistingBuild = builds.find(b => b.owner === 'player');
     
     // If the overlapping card belongs to opponent's build and its value is ≤ 5
     if (overlappingCard.value <= 5) {
-      // If player already has a build, automatically chow
-      if (hasPlayerBuild) {
+      // If player has a build and the buildValue is not equal to the player's existing build value
+      if (playerExistingBuild && buildValue !== playerExistingBuild.value) {
         setPlayerChowedCards(prev => [...prev, overlappingCard, card]);
         setTableCards(tableCards.filter(c => c !== overlappingCard));
         const newPlayerHand = [...playerHand];
@@ -113,7 +114,7 @@ export const handleNewBuild = (
         toast.success("Cards chowed!");
         return true;
       }
-      // Only show build option if no existing build and player has matching card
+      // If no existing build or if buildValue equals player's existing build value
       else if (hasMatchingCard && !existingBuild) {
         const shouldChow = window.confirm(
           `Do you want to chow the ${card.value} (OK) or build ${buildValue} (Cancel)?`
